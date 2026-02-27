@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 // not fixed: we can change this acc to figma actual color codes(freestyle way) when we start
 
 Color fromHex(String hexString) {
@@ -18,7 +19,7 @@ class AppColors {
 
   static const Color darkBase = Color(0xFF211A11);
 
-  static const Color lightBackground = Color(0xFFF0F0F0);
+  static const Color lightBackground = Color(0xFFEFECEA);
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightSurfaceAlt = Color(0xFFE4E4E4);
   static const Color lightBorder = Color(0xFFCCCCCC);
@@ -42,6 +43,48 @@ class AppColors {
 }
 
 class AppTheme {
+  static TextTheme _simpleTextTheme({required Brightness brightness}) {
+    final baseColor =
+        brightness == Brightness.dark
+            ? AppColors.darkText
+            : AppColors.lightText;
+    final variantColor =
+        brightness == Brightness.dark
+            ? AppColors.slate400
+            : AppColors.mutedText;
+
+    return TextTheme(
+      displayLarge: GoogleFonts.bebasNeue(
+        color: baseColor,
+        letterSpacing: 1.0,
+
+      ),
+      headlineMedium: GoogleFonts.bebasNeue(
+        color: baseColor,
+        letterSpacing: 0.6,
+ 
+      ),
+      headlineSmall: GoogleFonts.bebasNeue(
+        color: baseColor,
+        letterSpacing: 0.5,
+       
+      ),
+      titleLarge: GoogleFonts.bebasNeue(
+        color: baseColor,
+        letterSpacing: 0.4,
+       
+      ),
+      titleMedium: GoogleFonts.syne(
+        color: baseColor,
+        
+        fontWeight: FontWeight.w600,
+      ),
+      bodyMedium: GoogleFonts.syne(color: baseColor,),
+      bodySmall: GoogleFonts.syne(color: variantColor, ),
+      labelMedium: GoogleFonts.dmMono(color: variantColor, ),
+    );
+  }
+
   static ThemeData light() {
     final colorScheme = const ColorScheme.light(
       primary: AppColors.primaryAccent,
@@ -50,11 +93,15 @@ class AppTheme {
       onPrimary: AppColors.darkText,
       onSecondary: AppColors.darkText,
       onSurface: AppColors.lightText,
+      onSurfaceVariant: AppColors.mutedText,
       outline: AppColors.lightBorder,
     );
 
+    final textTheme = _simpleTextTheme(brightness: Brightness.light);
+
     return ThemeData(
       useMaterial3: true,
+      fontFamily: GoogleFonts.syne().fontFamily,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.lightBackground,
       colorScheme: colorScheme,
@@ -65,14 +112,7 @@ class AppTheme {
         foregroundColor: AppColors.lightText,
         elevation: 0,
       ),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: AppColors.lightText),
-        bodyMedium: TextStyle(color: AppColors.lightText),
-        bodySmall: TextStyle(color: AppColors.mutedText),
-        titleLarge: TextStyle(color: AppColors.lightText),
-        titleMedium: TextStyle(color: AppColors.lightText),
-        titleSmall: TextStyle(color: AppColors.lightText),
-      ),
+      textTheme: textTheme,
     );
   }
 
@@ -84,11 +124,15 @@ class AppTheme {
       onPrimary: AppColors.darkText,
       onSecondary: AppColors.darkText,
       onSurface: AppColors.darkText,
+      onSurfaceVariant: AppColors.slate400,
       outline: AppColors.darkBorder,
     );
 
+    final textTheme = _simpleTextTheme(brightness: Brightness.dark);
+
     return ThemeData(
       useMaterial3: true,
+      fontFamily: GoogleFonts.syne().fontFamily,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkBackground,
       colorScheme: colorScheme,
@@ -99,14 +143,7 @@ class AppTheme {
         foregroundColor: AppColors.darkText,
         elevation: 0,
       ),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: AppColors.darkText),
-        bodyMedium: TextStyle(color: AppColors.darkText),
-        bodySmall: TextStyle(color: AppColors.mutedText),
-        titleLarge: TextStyle(color: AppColors.darkText),
-        titleMedium: TextStyle(color: AppColors.darkText),
-        titleSmall: TextStyle(color: AppColors.darkText),
-      ),
+      textTheme: textTheme,
     );
   }
 }

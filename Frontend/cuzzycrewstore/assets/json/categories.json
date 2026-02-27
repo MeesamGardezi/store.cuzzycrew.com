@@ -1,0 +1,73 @@
+{
+	"categories": [
+		{
+			"id": "cat_hoodies",
+			"name": "Hoodies",
+			"slug": "hoodies",
+			"thumbnail": "assets/images/categories/hoodies-thumb.png",
+			
+			"description": "Heavyweight and oversized hoodies for everyday streetwear fits.",
+			"itemCount": 28,
+			"featured": true,
+			"sortOrder": 1,
+			"tags": ["winter", "oversized", "best-seller"]
+		},
+		{
+			"id": "cat_tees",
+			"name": "Tees",
+			"slug": "tees",
+			"thumbnail": "assets/images/categories/tees-thumb.png",
+			"description": "Graphic and minimal t-shirts in premium cotton blends.",
+			"itemCount": 42,
+			"featured": true,
+			"sortOrder": 2,
+			"tags": ["cotton", "graphic", "daily-wear"]
+		},
+		{
+			"id": "cat_caps",
+			"name": "Caps",
+			"slug": "caps",
+			"thumbnail": "assets/images/categories/caps-thumb.png",
+			"description": "Snapbacks, truckers, and dad caps to complete the fit.",
+			"itemCount": 19,
+			"featured": false,
+			"sortOrder": 3,
+			"tags": ["accessories", "headwear"]
+		},
+		{
+			"id": "cat_shoes",
+			"name": "Shoes",
+			"slug": "shoes",
+			"thumbnail": "assets/images/categories/shoes-thumb.png",
+			"description": "Everyday sneakers and statement footwear drops.",
+			"itemCount": 16,
+			"featured": true,
+			"sortOrder": 4,
+			"tags": ["sneakers", "footwear", "new-drop"]
+		},
+		{
+			"id": "cat_jackets",
+			"name": "Jackets",
+			"slug": "jackets",
+			"thumbnail": "assets/images/categories/jackets-thumb.png",
+			"banner": "assets/images/categories/jackets-banner.png",
+			"description": "Layer-ready jackets from light utility to padded outerwear.",
+			"itemCount": 14,
+			"featured": false,
+			"sortOrder": 5,
+			"tags": ["outerwear", "layering"]
+		},
+		{
+			"id": "cat_bottoms",
+			"name": "Bottoms",
+			"slug": "bottoms",
+			"thumbnail": "assets/images/categories/bottoms-thumb.png",
+			"banner": "assets/images/categories/bottoms-banner.png",
+			"description": "Cargo pants, joggers, and denim designed for movement.",
+			"itemCount": 24,
+			"featured": false,
+			"sortOrder": 6,
+			"tags": ["cargo", "joggers", "denim"]
+		}
+	]
+}

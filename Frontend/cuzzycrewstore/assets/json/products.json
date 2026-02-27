@@ -1,0 +1,109 @@
+
+{
+	"products": [
+		{
+			"id": "prod_hwd_bone_01",
+			"category": "hoodies",
+			"dateAdded": "2026-02-20T10:00:00Z",
+			"name": "HEAVYWEIGHT HOODIE / BONE",
+			"shortName": "Cuzzy Heavy Hoodie",
+			"price": 120.0,
+			"currency": "USD",
+			"unit": "piece",
+			"availableUnits": 42,
+			"thumbnail": "assets/images/categories/hoodies-thumb.png",
+			"sizeGuideImage": "assets/images/Container.png",
+			"sizes": ["XS", "S", "M", "L", "XL"],
+			"colorVariants": [
+				{
+					"colorName": "Bone",
+					"colorHex": "#D9D2C5",
+					"image": "assets/images/categories/hoodies-thumb.png"
+				},
+				{
+					"colorName": "Onyx",
+					"colorHex": "#2B2B2B",
+					"image": "assets/images/categories/hoodies-thumb.png"
+				}
+			]
+		},
+		{
+			"id": "prod_tee_onyx_02",
+			"category": "tees",
+			"dateAdded": "2026-02-15T10:00:00Z",
+			"name": "CUZZY ARCHIVE TEE / ONYX",
+			"shortName": "Archive Tee",
+			"price": 45.0,
+			"currency": "USD",
+			"unit": "piece",
+			"availableUnits": 78,
+			"thumbnail": "assets/images/categories/tees-thumb.png",
+			"sizeGuideImage": "assets/images/Container.png",
+			"sizes": ["S", "M", "L", "XL"],
+			"colorVariants": [
+				{
+					"colorName": "Onyx",
+					"colorHex": "#111111",
+					"image": "assets/images/categories/tees-thumb.png"
+				},
+				{
+					"colorName": "Slate",
+					"colorHex": "#6B7280",
+					"image": "assets/images/categories/tees-thumb.png"
+				}
+			]
+		},
+		{
+			"id": "prod_cap_slate_03",
+			"category": "caps",
+			"dateAdded": "2026-02-10T10:00:00Z",
+			"name": "CREW ESSENTIAL CAP / SLATE",
+			"shortName": "Essential Cap",
+			"price": 35.0,
+			"currency": "USD",
+			"unit": "piece",
+			"availableUnits": 65,
+			"thumbnail": "assets/images/categories/caps-thumb.png",
+			"sizeGuideImage": "assets/images/Container.png",
+			"sizes": ["ONE SIZE"],
+			"colorVariants": [
+				{
+					"colorName": "Slate",
+					"colorHex": "#485468",
+					"image": "assets/images/categories/caps-thumb.png"
+				},
+				{
+					"colorName": "Navy",
+					"colorHex": "#1F2A44",
+					"image": "assets/images/categories/caps-thumb.png"
+				}
+			]
+		},
+		{
+			"id": "prod_shoe_sand_04",
+			"category": "shoes",
+			"dateAdded": "2026-01-25T10:00:00Z",
+			"name": "RELAXED CARGO JOGGER / SAND",
+			"shortName": "Relaxed Jogger",
+			"price": 95.0,
+			"currency": "USD",
+			"unit": "piece",
+			"availableUnits": 34,
+			"thumbnail": "assets/images/categories/shoes-thumb.png",
+			"sizeGuideImage": "assets/images/Container.png",
+			"sizes": ["28", "30", "32", "34", "36"],
+			"colorVariants": [
+				{
+					"colorName": "Sand",
+					"colorHex": "#C4A36B",
+					"image": "assets/images/categories/shoes-thumb.png"
+				},
+				{
+					"colorName": "Khaki",
+					"colorHex": "#9F8B65",
+					"image": "assets/images/categories/shoes-thumb.png"
+				}
+			]
+		}
+	]
+}
