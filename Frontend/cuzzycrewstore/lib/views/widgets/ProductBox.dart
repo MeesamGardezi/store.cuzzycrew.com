@@ -82,7 +82,7 @@ class ProductBox extends StatelessWidget {
                   theme.brightness == Brightness.dark
                       ? AppColors.darkText
                       : AppColors.lightText,
-              fontSize: width * 0.009,
+              fontSize: width * 0.01,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -96,7 +96,7 @@ class ProductBox extends StatelessWidget {
               '\$${product.price.toStringAsFixed(2)}',
               style: textTheme.bodyMedium?.copyWith(
                 color: AppColors.primaryAccent,
-                fontSize: width * 0.011,
+                fontSize: width * 0.009,
                 fontWeight: FontWeight.w700,
               ),
             ),

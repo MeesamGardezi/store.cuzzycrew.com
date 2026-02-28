@@ -64,6 +64,7 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/images/categories/
+    - assets/images/banner-images/
     - assets/json/
     - assets/lottie/
 

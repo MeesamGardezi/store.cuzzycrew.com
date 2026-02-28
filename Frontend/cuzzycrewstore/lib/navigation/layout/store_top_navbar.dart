@@ -64,7 +64,7 @@ class _NavMetrics {
               : isMobile
               ? width * 0.04
               : width * 0.02,
-      navHeight: isMobile ? height * 0.09 : height * 0.105,
+      navHeight: isMobile ? height * 0.085 : height * 0.08,
       logoWidth:
           isDesktop
               ? width * 0.12

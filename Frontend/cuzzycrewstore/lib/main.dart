@@ -1,9 +1,9 @@
+import 'package:cuzzycrewstore/views/pages/homepage/homePage.dart';
 import 'package:flutter/material.dart';
 import 'package:cuzzycrewstore/navigation/core/navWrapperController.dart';
 import 'package:cuzzycrewstore/navigation/core/responsiveWrapper.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
 import 'package:cuzzycrewstore/views/pages/categories_page.dart';
-import 'package:cuzzycrewstore/views/pages/home_page.dart';
 import 'package:cuzzycrewstore/views/pages/shop_page.dart';
 import 'package:cuzzycrewstore/views/pages/track_order_page.dart';
 
