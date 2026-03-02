@@ -8,12 +8,14 @@ const { checkoutRoutes } = require('./checkoutRoutes');
 const { orderRoutes } = require('./orderRoutes');
 const { paymentRoutes } = require('./paymentRoutes');
 const { adminRoutes } = require('./adminRoutes');
+const { appRoutes } = require('./appRoutes');
 
 const apiRouter = express.Router();
 
 apiRouter.use('/auth', authRoutes);
 apiRouter.use('/products', productRoutes);
 apiRouter.use('/categories', categoryRoutes);
+apiRouter.use('/app', appRoutes);
 apiRouter.use('/cart', cartRoutes);
 apiRouter.use('/checkout', checkoutRoutes);
 apiRouter.use('/orders', orderRoutes);

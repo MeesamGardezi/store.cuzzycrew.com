@@ -4,25 +4,49 @@ const { newId, nowIso } = require('../utils/firestore');
 const auditLogService = require('./auditLogService');
 const adminProductRepository = require('../repositories/adminProductRepository');
 const adminVariantRepository = require('../repositories/adminVariantRepository');
+const adminCategoryRepository = require('../repositories/adminCategoryRepository');
+const adminSiteContentRepository = require('../repositories/adminSiteContentRepository');
 const adminOrderRepository = require('../repositories/adminOrderRepository');
 const adminCouponRepository = require('../repositories/adminCouponRepository');
 const orderRepository = require('../repositories/orderRepository');
 const { getDb } = require('../config/firebase');
 
+async function recomputeAvailableUnits({ productId, nowIsoValue }) {
+  const db = getDb();
+  const snap = await db.collection('productVariants').where('productId', '==', productId).where('deletedAt', '==', null).get();
+  const total = snap.docs.reduce((sum, d) => sum + Number(d.data().stock || 0), 0);
+  await db.collection('products').doc(productId).set({ availableUnits: total, updatedAt: nowIsoValue }, { merge: true });
+  return total;
+}
+
 async function createProduct({ actorUserId, payload, correlationId }) {
   try {
+    const now = nowIso();
     const created = await adminProductRepository.createProduct({
       productId: newId(),
       data: {
         name: payload.name,
         slug: payload.slug,
+        category: payload.category || null,
+        dateAdded: payload.dateAdded || now,
+        shortName: payload.shortName || payload.name,
+        price: payload.price != null ? payload.price : null,
+        currency: payload.currency || 'USD',
+        unit: payload.unit || 'piece',
+        availableUnits: payload.availableUnits != null ? payload.availableUnits : 0,
+        thumbnail: payload.thumbnail || null,
+        images: payload.images || [],
+        sizeGuideImage: payload.sizeGuideImage || null,
+        sizes: payload.sizes || [],
+        story: payload.story || null,
+        colorVariants: payload.colorVariants || [],
+
         description: payload.description || null,
         categoryId: payload.categoryId || null,
         priceMin: payload.priceMin ?? 0,
         colors: payload.colors || [],
-        sizes: payload.sizes || [],
       },
-      nowIso: nowIso(),
+      nowIso: now,
     });
 
     await auditLogService.writeAuditLog({
@@ -93,7 +117,12 @@ async function updateVariantStock({ actorUserId, variantId, stock, correlationId
   const before = await adminVariantRepository.getById(variantId);
   if (!before) throw new ApiError({ status: 404, code: 'NOT_FOUND', message: 'Variant not found', details: [] });
 
-  const after = await adminVariantRepository.updateStock({ variantId, stock, nowIso: nowIso() });
+  const now = nowIso();
+  const after = await adminVariantRepository.updateStock({ variantId, stock, nowIso: now });
+
+  if (after && after.productId) {
+    await recomputeAvailableUnits({ productId: after.productId, nowIsoValue: now });
+  }
 
   await auditLogService.writeAuditLog({
     actorUserId,
@@ -196,6 +225,7 @@ async function createVariant({ actorUserId, payload, correlationId }) {
   }
 
   try {
+    const now = nowIso();
     const created = await adminVariantRepository.createVariant({
       variantId: newId(),
       data: {
@@ -205,8 +235,10 @@ async function createVariant({ actorUserId, payload, correlationId }) {
         price: payload.price,
         stock: payload.stock,
       },
-      nowIso: nowIso(),
+      nowIso: now,
     });
+
+    await recomputeAvailableUnits({ productId: payload.productId, nowIsoValue: now });
 
     await auditLogService.writeAuditLog({
       actorUserId,
@@ -227,12 +259,118 @@ async function createVariant({ actorUserId, payload, correlationId }) {
   }
 }
 
+async function createCategory({ actorUserId, payload, correlationId }) {
+  try {
+    const now = nowIso();
+    const created = await adminCategoryRepository.createCategory({
+      categoryId: payload.id || newId(),
+      data: {
+        id: payload.id || null,
+        name: payload.name,
+        slug: payload.slug,
+        thumbnail: payload.thumbnail,
+        launched: payload.launched ?? true,
+        description: payload.description || '',
+        itemCount: payload.itemCount ?? 0,
+        featured: payload.featured ?? false,
+        sortOrder: payload.sortOrder ?? 0,
+        tags: payload.tags || [],
+        banner: payload.banner || null,
+      },
+      nowIso: now,
+    });
+
+    await auditLogService.writeAuditLog({
+      actorUserId,
+      action: 'ADMIN_CATEGORY_CREATE',
+      entityType: 'category',
+      entityId: created.id,
+      before: null,
+      after: created,
+      correlationId,
+    });
+
+    return created;
+  } catch (e) {
+    if (e && e.code === 'CATEGORY_SLUG_TAKEN') {
+      throw new ApiError({ status: 409, code: 'CATEGORY_SLUG_TAKEN', message: 'Category slug already exists', details: [] });
+    }
+    throw e;
+  }
+}
+
+async function updateCategory({ actorUserId, categoryId, patch, correlationId }) {
+  const before = await adminCategoryRepository.getById(categoryId);
+  if (!before) throw new ApiError({ status: 404, code: 'NOT_FOUND', message: 'Category not found', details: [] });
+
+  try {
+    const after = await adminCategoryRepository.updateCategory({ categoryId, patch, nowIso: nowIso() });
+
+    await auditLogService.writeAuditLog({
+      actorUserId,
+      action: 'ADMIN_CATEGORY_UPDATE',
+      entityType: 'category',
+      entityId: categoryId,
+      before,
+      after,
+      correlationId,
+    });
+
+    return after;
+  } catch (e) {
+    if (e && e.code === 'CATEGORY_SLUG_TAKEN') {
+      throw new ApiError({ status: 409, code: 'CATEGORY_SLUG_TAKEN', message: 'Category slug already exists', details: [] });
+    }
+    throw e;
+  }
+}
+
+async function deleteCategory({ actorUserId, categoryId, correlationId }) {
+  const before = await adminCategoryRepository.getById(categoryId);
+  if (!before) throw new ApiError({ status: 404, code: 'NOT_FOUND', message: 'Category not found', details: [] });
+
+  const after = await adminCategoryRepository.softDeleteCategory({ categoryId, nowIso: nowIso() });
+
+  await auditLogService.writeAuditLog({
+    actorUserId,
+    action: 'ADMIN_CATEGORY_DELETE',
+    entityType: 'category',
+    entityId: categoryId,
+    before,
+    after,
+    correlationId,
+  });
+
+  return after;
+}
+
+async function setWebsiteBanner({ actorUserId, images, correlationId }) {
+  const before = await adminSiteContentRepository.getWebsiteBanner();
+  const after = await adminSiteContentRepository.setWebsiteBanner({ images, nowIso: nowIso() });
+
+  await auditLogService.writeAuditLog({
+    actorUserId,
+    action: 'ADMIN_WEBSITE_BANNER_SET',
+    entityType: 'siteContent',
+    entityId: 'websiteBanner',
+    before,
+    after,
+    correlationId,
+  });
+
+  return after;
+}
+
 module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
   updateVariantStock,
   createVariant,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  setWebsiteBanner,
   listOrders,
   updateOrderStatus,
   createCoupon,

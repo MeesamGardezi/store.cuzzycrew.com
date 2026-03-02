@@ -72,6 +72,45 @@ const createCoupon = asyncHandler(async (req, res) => {
   return sendSuccess(res, { data: created, message: '' });
 });
 
+const createCategory = asyncHandler(async (req, res) => {
+  const created = await adminService.createCategory({
+    actorUserId: req.auth.userId,
+    payload: req.validated.body,
+    correlationId: req.correlationId,
+  });
+  return sendSuccess(res, { data: created, message: '' });
+});
+
+const updateCategory = asyncHandler(async (req, res) => {
+  const { id } = req.validated.params;
+  const updated = await adminService.updateCategory({
+    actorUserId: req.auth.userId,
+    categoryId: id,
+    patch: req.validated.body,
+    correlationId: req.correlationId,
+  });
+  return sendSuccess(res, { data: updated, message: '' });
+});
+
+const deleteCategory = asyncHandler(async (req, res) => {
+  const { id } = req.validated.params;
+  const deleted = await adminService.deleteCategory({
+    actorUserId: req.auth.userId,
+    categoryId: id,
+    correlationId: req.correlationId,
+  });
+  return sendSuccess(res, { data: deleted, message: '' });
+});
+
+const setWebsiteBanner = asyncHandler(async (req, res) => {
+  const updated = await adminService.setWebsiteBanner({
+    actorUserId: req.auth.userId,
+    images: req.validated.body.images,
+    correlationId: req.correlationId,
+  });
+  return sendSuccess(res, { data: updated, message: '' });
+});
+
 const dashboard = asyncHandler(async (req, res) => {
   const result = await adminService.dashboard();
   return sendSuccess(res, { data: result, message: '' });
@@ -92,6 +131,10 @@ module.exports = {
   deleteProduct,
   updateVariantStock,
   createVariant,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  setWebsiteBanner,
   listOrders,
   updateOrderStatus,
   createCoupon,
