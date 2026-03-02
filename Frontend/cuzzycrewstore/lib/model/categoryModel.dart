@@ -17,6 +17,7 @@ class CategoryModel {
     required this.name,
     required this.slug,
     required this.thumbnail,
+    required this.launched,
     required this.description,
     required this.itemCount,
     required this.featured,
@@ -27,6 +28,7 @@ class CategoryModel {
   final String name;
   final String slug;
   final String thumbnail;
+  final bool launched;
   final String description;
   final int itemCount;
   final bool featured;
@@ -39,6 +41,7 @@ class CategoryModel {
     name: json["name"],
     slug: json["slug"],
     thumbnail: json["thumbnail"],
+    launched: json["launched"],
     description: json["description"],
     itemCount: json["itemCount"],
     featured: json["featured"],
@@ -51,6 +54,7 @@ class CategoryModel {
     "name": name,
     "slug": slug,
     "thumbnail": thumbnail,
+    "launched": launched,
     "description": description,
     "itemCount": itemCount,
     "featured": featured,

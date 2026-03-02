@@ -1,6 +1,9 @@
+import 'package:cuzzycrewstore/controller/cartController.dart';
 import 'package:cuzzycrewstore/navigation/core/navWrapperController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/views/pages/cartpage/cartPage.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 enum NavbarDeviceType { desktop, tablet, mobile }
 
@@ -111,9 +114,14 @@ class StoreTopNavbar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final metrics = _NavMetrics.fromContext(context, deviceType);
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
     return Container(
-      color: isDark ? AppColors.darkBackground : theme.scaffoldBackgroundColor,
+      decoration: BoxDecoration(
+        color:
+            isDark ? AppColors.darkBackground : theme.scaffoldBackgroundColor,
+        border: Border(bottom: BorderSide(color: borderColor, width: 0.8)),
+      ),
       padding: EdgeInsets.symmetric(horizontal: metrics.horizontalPadding),
       child: SafeArea(
         bottom: false,
@@ -393,11 +401,49 @@ class _ActionRow extends StatelessWidget {
           ),
         ),
         if (showCart)
-          IconButton(
-            onPressed: () {},
-            iconSize: iconSize,
-            style: IconButton.styleFrom(minimumSize: Size.square(buttonSide)),
-            icon: Icon(Icons.shopping_cart_outlined, color: menuIconColor),
+          Consumer<CartController>(
+            builder: (context, cartController, _) {
+              return Stack(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CartPage()),
+                      );
+                    },
+                    iconSize: iconSize,
+                    style: IconButton.styleFrom(
+                      minimumSize: Size.square(buttonSide),
+                    ),
+                    icon: Icon(
+                      Icons.shopping_cart_outlined,
+                      color: menuIconColor,
+                    ),
+                  ),
+                  if (cartController.itemCount > 0)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '${cartController.itemCount}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.darkText,
+                            fontWeight: FontWeight.w700,
+                            fontSize: (iconSize * 0.3).clamp(8, 12),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         if (showMenu)
           IconButton(

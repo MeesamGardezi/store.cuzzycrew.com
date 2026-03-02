@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cuzzycrewstore/controller/homeController.dart';
+import 'package:cuzzycrewstore/navigation/core/navWrapperController.dart';
 import 'package:cuzzycrewstore/model/categoryModel.dart';
 import 'package:cuzzycrewstore/model/productModel.dart';
 import 'package:cuzzycrewstore/views/widgets/CategoryBox.dart';
@@ -137,11 +138,15 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                         });
                       },
                       itemBuilder: (context, index) {
-                        return Image.asset(
-                          _bannerImages[index],
-                          fit: BoxFit.cover,
-                          width: width,
-                          height: heroHeight,
+                        return Opacity(
+                          opacity:
+                              theme.brightness == Brightness.dark ? 0.8 : 1.0,
+                          child: Image.asset(
+                            _bannerImages[index],
+                            fit: BoxFit.cover,
+                            width: width,
+                            height: heroHeight,
+                          ),
                         );
                       },
                     ),
@@ -274,7 +279,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                           Row(
                             children: [
                               ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {     NavWrapperController.selectedIndex.value = 1;},
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryAccent,
                                   padding: const EdgeInsets.symmetric(
@@ -354,7 +359,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
               ),
               SizedBox(height: height * 0.01),
               Container(
-                padding: const EdgeInsets.all(30),
+                padding: const EdgeInsets.only(left: 30, right: 30, top: 30, bottom: 30),
                 child: Column(
                   children: [
                     Container(
@@ -363,8 +368,8 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                         'FEATURED CATEGORIES',
                         style: textTheme.bodyMedium?.copyWith(
                           color: bodyColor,
-                          fontSize: width * 0.013,
-                          fontWeight: FontWeight.bold,
+                          fontSize: width * 0.014,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -404,6 +409,12 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                                   return CategoryBoxItem(
                                     title: item.name,
                                     thumbnail: item.thumbnail,
+                                    launched: item.launched,
+                                    onTap:
+                                        () =>
+                                            NavWrapperController.openShopWithCategory(
+                                              item.slug,
+                                            ),
                                   );
                                 }).toList();
 
@@ -418,10 +429,10 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                   ],
                 ),
               ),
-              SizedBox(height: height * 0.01),
+              SizedBox(height: height * 0.0),
               Container(
                 width: width,
-                padding: const EdgeInsets.all(30),
+                padding: const EdgeInsets.only(left: 30, right: 30, top: 0, bottom: 10),
                 child: Column(
                   children: [
                     Row(
@@ -431,7 +442,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                           'NEW ARRIVALS',
                           style: textTheme.bodyMedium?.copyWith(
                             color: bodyColor,
-                            fontSize: width * 0.013,
+                            fontSize: width * 0.014,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -476,7 +487,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                               );
                             }
 
-                            final items = products;
+                            final items = products.take(4).toList();
                             return ProductBoxGrid(items: items);
                           },
                         );
@@ -486,86 +497,51 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                 ),
               ),
 
-              SizedBox(height: height * 0.01),
-              SizedBox(
-                width: double.infinity,
-                child: Column(
-                  children: [
-                    Container(
-                      height: height * 0.42,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: const AssetImage(
-                            'assets/images/Container.png',
+              SizedBox(height: height * 0.02),
+              SafeArea(
+                left: false,
+                right: false,
+                top: false,
+                bottom: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    children: [
+                      Container(
+                        height: height * 0.42,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: const AssetImage(
+                              'assets/images/Container.png',
+                            ),
+                            fit: BoxFit.cover,
+                            colorFilter: ColorFilter.mode(
+                              isDark
+                                  ? AppColors.darkBase.withOpacity(0.45)
+                                  : AppColors.lightSurface.withOpacity(0.20),
+                              BlendMode.srcATop,
+                            ),
                           ),
-                          fit: BoxFit.cover,
-                          colorFilter: ColorFilter.mode(
-                            isDark
-                                ? AppColors.darkBase.withOpacity(0.45)
-                                : AppColors.lightSurface.withOpacity(0.20),
-                            BlendMode.srcATop,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'JOIN THE CREW',
+                            style: textTheme.headlineMedium?.copyWith(
+                              color:
+                                  isDark
+                                      ? AppColors.darkText
+                                      : AppColors.lightText,
+                              fontSize: width * 0.045,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
                           ),
                         ),
                       ),
-                      child: Center(
-                        child: Text(
-                          'JOIN THE CREW',
-                          style: textTheme.headlineMedium?.copyWith(
-                            color:
-                                isDark
-                                    ? AppColors.darkText
-                                    : AppColors.lightText,
-                            fontSize: width * 0.045,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: height * 0.03),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 30),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: _contactInfoBox(
-                              context: context,
-                              icon: '📸',
-                              title: 'Instagram',
-                              link: '@sharikh_naveed',
-                              description:
-                                  'Primary platform. 69.7K followers. Photos, Reels, and Stories driving high engagement with a tight-knit community.',
-                            ),
-                          ),
-                          SizedBox(width: width * 0.015),
-                          Expanded(
-                            child: _contactInfoBox(
-                              context: context,
-                              icon: '🔗',
-                              title: 'Linktree',
-                              link: 'linktr.ee/sharikh_naveed',
-                              description:
-                                  'All links in one place — follow, collab, and connect through the official hub for everything Sharikh.',
-                            ),
-                          ),
-                          SizedBox(width: width * 0.015),
-                          Expanded(
-                            child: _contactInfoBox(
-                              context: context,
-                              icon: '📬',
-                              title: 'Inquiries',
-                              link: 'email',
-                              description:
-                                  'For partnerships, collaborations, and business requests, reach out directly via official inquiry contact.',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: height * 0.02),
-                  ],
+                      SizedBox(height: height * 0.03),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -606,62 +582,6 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
               color: AppColors.darkText,
               fontSize: width * 0.0095,
               fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _contactInfoBox({
-    required BuildContext context,
-    required String icon,
-    required String title,
-    required String link,
-    required String description,
-  }) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final width = MediaQuery.of(context).size.width;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$icon  $title',
-            style: textTheme.titleMedium?.copyWith(
-              color: isDark ? AppColors.darkText : AppColors.lightText,
-              fontSize: width * 0.012,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: width * 0.004),
-          Text(
-            link,
-            style: textTheme.bodyMedium?.copyWith(
-              color: AppColors.primaryAccent,
-              fontSize: width * 0.010,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: width * 0.006),
-          Text(
-            description,
-            style: textTheme.bodyMedium?.copyWith(
-              color: isDark ? AppColors.slate400 : AppColors.mutedText,
-              fontSize: width * 0.0095,
-              height: 1.45,
             ),
           ),
         ],

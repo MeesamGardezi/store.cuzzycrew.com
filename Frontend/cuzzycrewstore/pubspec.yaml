@@ -37,6 +37,8 @@ dependencies:
   google_fonts: ^6.2.1
   svg_flutter: ^0.0.1
   carousel_text: ^0.0.7
+  provider: ^6.0.0
+  uuid: ^4.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,14 +1,12 @@
-
-
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:cuzzycrewstore/controller/homeController.dart';
+import 'package:cuzzycrewstore/navigation/core/navWrapperController.dart';
 import 'package:cuzzycrewstore/model/categoryModel.dart';
 import 'package:cuzzycrewstore/model/productModel.dart';
-import 'package:cuzzycrewstore/views/pages/homepage/desktopHome.dart';
+import 'package:cuzzycrewstore/views/pages/productdetailpage/productDetailPage.dart';
 import 'package:cuzzycrewstore/views/widgets/CategoryBox.dart';
-import 'package:cuzzycrewstore/views/widgets/ProductBox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
@@ -123,7 +121,12 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 16),
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  top: 12,
+                  right: 16,
+                  bottom: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -183,39 +186,73 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Wrap(
-                  spacing: width * 0.018,
-                  runSpacing: width * 0.018,
-                  children: [
-                    _InfoStatBox(
-                      label: '12K+',
-                      value: 'CREW MEMBERS',
-                      width: width * 0.45,
-                      valueFont: width * 0.028,
-                      labelFont: width * 0.023,
-                    ),
-                    _InfoStatBox(
-                      label: '48H',
-                      value: 'AVG DELIVERY',
-                      width: width * 0.45,
-                      valueFont: width * 0.028,
-                      labelFont: width * 0.023,
-                    ),
-                    _InfoStatBox(
-                      label: '100%',
-                      value: 'AUTHENTIC',
-                      width: width * 0.45,
-                      valueFont: width * 0.028,
-                      labelFont: width * 0.023,
-                    ),
-                    _InfoStatBox(
-                      label: 'Material',
-                      value: '100% Cotton',
-                      width: width * 0.45,
-                      valueFont: width * 0.028,
-                      labelFont: width * 0.023,
-                    ),
-                  ],
+                child: Builder(
+                  builder: (context) {
+                    final spacing = MediaQuery.of(context).size.width * 0.017;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(right: spacing / 2),
+                                child: _InfoStatBox(
+                                  label: '12K+',
+                                  value: 'CREW MEMBERS',
+                                  width: double.infinity,
+                                  valueFont: width * 0.028,
+                                  labelFont: width * 0.023,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(left: spacing / 2),
+                                child: _InfoStatBox(
+                                  label: '48H',
+                                  value: 'AVG DELIVERY',
+                                  width: double.infinity,
+                                  valueFont: width * 0.028,
+                                  labelFont: width * 0.023,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: height * 0.01),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(right: spacing / 2),
+                                child: _InfoStatBox(
+                                  label: '100%',
+                                  value: 'AUTHENTIC',
+                                  width: double.infinity,
+                                  valueFont: width * 0.028,
+                                  labelFont: width * 0.023,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(left: spacing / 2),
+                                child: _InfoStatBox(
+                                  label: 'Material',
+                                  value: '100% Cotton',
+                                  width: double.infinity,
+                                  valueFont: width * 0.028,
+                                  labelFont: width * 0.023,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
               SizedBox(height: height * 0.02),
@@ -246,7 +283,9 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        NavWrapperController.selectedIndex.value = 1;
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryAccent,
                         padding: EdgeInsets.symmetric(
@@ -297,6 +336,7 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                   ),
                 ),
               ),
+              SizedBox(height: height * 0.02),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -333,6 +373,12 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                                   return CategoryBoxItem(
                                     title: item.name,
                                     thumbnail: item.thumbnail,
+                                    launched: item.launched,
+                                    onTap:
+                                        () =>
+                                            NavWrapperController.openShopWithCategory(
+                                              item.slug,
+                                            ),
                                   );
                                 }).toList();
 
@@ -356,6 +402,8 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                                 return CategoryBox(
                                   title: item.title,
                                   thumbnail: item.thumbnail,
+                                  launched: item.launched,
+                                  onTap: item.onTap,
                                 );
                               },
                             );
@@ -454,38 +502,6 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                   ),
                 ),
               ),
-              SizedBox(height: height * 0.02),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: const [
-                    _ContactInfoCard(
-                      icon: '📸',
-                      title: 'Instagram',
-                      link: '@sharikh_naveed',
-                      description:
-                          'Primary platform. 69.7K followers. Photos, Reels, and Stories driving high engagement with a tight-knit community.',
-                    ),
-                    SizedBox(height: 12),
-                    _ContactInfoCard(
-                      icon: '🔗',
-                      title: 'Linktree',
-                      link: 'linktr.ee/sharikh_naveed',
-                      description:
-                          'All links in one place — follow, collab, and connect through the official hub for everything Sharikh.',
-                    ),
-                    SizedBox(height: 12),
-                    _ContactInfoCard(
-                      icon: '📬',
-                      title: 'Inquiries',
-                      link: 'email',
-                      description:
-                          'For partnerships, collaborations, and business requests, reach out directly via official inquiry contact.',
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: height * 0.02),
             ],
           ),
         ),
@@ -561,106 +577,54 @@ class _VerticalProductCard extends StatelessWidget {
     final bool isTablet = width >= 640 && width < 1024;
     final double radius = isMobile ? 8 : (isTablet ? 10 : 12);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: theme.colorScheme.outline),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailPage(product: product),
           ),
-          child: AspectRatio(
-            aspectRatio: 1.2,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(radius),
-              child: Image.asset(product.thumbnail, fit: BoxFit.cover),
-            ),
-          ),
-        ),
-        SizedBox(height: width * 0.012),
-        Text(
-          product.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: textTheme.bodyMedium?.copyWith(
-            color: isDark ? AppColors.darkText : AppColors.lightText,
-            fontSize: width * 0.022,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        SizedBox(height: width * 0.005),
-        Text(
-          '\$${product.price.toStringAsFixed(2)}',
-          style: textTheme.bodyMedium?.copyWith(
-            color: AppColors.primaryAccent,
-            fontSize: width * 0.026,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ContactInfoCard extends StatelessWidget {
-  const _ContactInfoCard({
-    required this.icon,
-    required this.title,
-    required this.link,
-    required this.description,
-  });
-
-  final String icon;
-  final String title;
-  final String link;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final width = MediaQuery.of(context).size.width;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-      ),
+        );
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$icon  $title',
-            style: textTheme.titleMedium?.copyWith(
-              color: isDark ? AppColors.darkText : AppColors.lightText,
-              fontSize: width * 0.030,
-              fontWeight: FontWeight.bold,
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(radius),
+              border: Border.all(color: theme.colorScheme.outline),
+            ),
+            child: AspectRatio(
+              aspectRatio: 1.2,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child:
+                    product.primaryImage.startsWith('http')
+                        ? Image.network(product.primaryImage, fit: BoxFit.cover)
+                        : Image.asset(product.primaryImage, fit: BoxFit.cover),
+              ),
             ),
           ),
-          SizedBox(height: width * 0.01),
+          SizedBox(height: width * 0.017),
           Text(
-            link,
+            product.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: textTheme.bodyMedium?.copyWith(
-              color: AppColors.primaryAccent,
+              color: isDark ? AppColors.darkText : AppColors.lightText,
               fontSize: width * 0.028,
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: width * 0.012),
+          SizedBox(height: width * 0.004),
           Text(
-            description,
+            '\$${product.price.toStringAsFixed(2)}',
             style: textTheme.bodyMedium?.copyWith(
-              color: isDark ? AppColors.slate400 : AppColors.mutedText,
-              fontSize: width * 0.024,
-              height: 1.4,
+              color: AppColors.primaryAccent,
+              fontSize: width * 0.032,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

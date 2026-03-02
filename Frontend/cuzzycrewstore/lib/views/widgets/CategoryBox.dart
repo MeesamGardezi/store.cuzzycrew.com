@@ -2,10 +2,17 @@ import 'package:cuzzycrewstore/utils/colorUtils.dart';
 import 'package:flutter/material.dart';
 
 class CategoryBoxItem {
-  const CategoryBoxItem({required this.title, required this.thumbnail});
+  const CategoryBoxItem({
+    required this.title,
+    required this.thumbnail,
+    this.launched = true,
+    this.onTap,
+  });
 
   final String title;
   final String thumbnail;
+  final bool launched;
+  final VoidCallback? onTap;
 }
 
 class CategoryBoxGrid extends StatelessWidget {
@@ -44,24 +51,38 @@ class CategoryBoxGrid extends StatelessWidget {
         ),
         itemBuilder: (context, index) {
           final item = items[index];
-          return CategoryBox(title: item.title, thumbnail: item.thumbnail);
+          return CategoryBox(
+            title: item.title,
+            thumbnail: item.thumbnail,
+            launched: item.launched,
+            onTap: item.onTap,
+          );
         },
       ),
     );
   }
 }
 
-class CategoryBox extends StatelessWidget {
+class CategoryBox extends StatefulWidget {
   const CategoryBox({
     super.key,
     required this.title,
     required this.thumbnail,
+    this.launched = true,
     this.onTap,
   });
 
   final String title;
   final String thumbnail;
+  final bool launched;
   final VoidCallback? onTap;
+
+  @override
+  State<CategoryBox> createState() => _CategoryBoxState();
+}
+
+class _CategoryBoxState extends State<CategoryBox> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -76,42 +97,77 @@ class CategoryBox extends StatelessWidget {
         isMobile ? width * 0.03 : (isTablet ? width * 0.018 : width * 0.012);
     final double radius = isMobile ? 8 : (isTablet ? 10 : 12);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(radius),
+    return GestureDetector(
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(radius),
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  border: Border.all(color: colorScheme.outline),
-                ),
-                child: Image.asset(
-                  thumbnail,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, _, __) {
-                    return Container(
-                      color: colorScheme.surface,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.image_outlined,
-                        size: isMobile ? 24 : 32,
-                        color: colorScheme.onSurfaceVariant,
+            child: MouseRegion(
+              onEnter: (_) => setState(() => _isHovered = true),
+              onExit: (_) => setState(() => _isHovered = false),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    border: Border.all(color: colorScheme.outline),
+                  ),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      widget.thumbnail.startsWith('http')
+                          ? Image.network(widget.thumbnail, fit: BoxFit.cover, )
+                          : Image.asset(widget.thumbnail, fit: BoxFit.cover),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: _isHovered ? 1 : 0,
+                        child: Container(
+                          color: colorScheme.primary.withValues(alpha: 0.26),
+                        ),
                       ),
-                    );
-                  },
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: _isHovered ? 1 : 0,
+                        child: Center(
+                          child: ElevatedButton(
+                            onPressed:
+                                widget.launched
+                                    ? (widget.onTap ?? () {})
+                                    : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryAccent,
+                              foregroundColor: AppColors.darkText,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(0),
+                              ),
+                            ),
+                            child: Text(
+                              widget.launched ? 'VIEW PAGE' : 'COMING SOON',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: AppColors.darkText,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
           SizedBox(height: isMobile ? 6 : 10),
           Text(
-            title.toUpperCase(),
+            widget.title.toUpperCase(),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: textTheme.titleMedium?.copyWith(

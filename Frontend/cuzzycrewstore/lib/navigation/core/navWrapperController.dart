@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 class NavWrapperController {
   static final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
+  static final ValueNotifier<String?> shopCategory = ValueNotifier<String?>(
+    null,
+  );
   static final ValueNotifier<ThemeMode> themeMode = ValueNotifier<ThemeMode>(
     ThemeMode.dark,
   );
@@ -21,6 +24,11 @@ class NavWrapperController {
 
   static void setSelectedIndex(int index) {
     selectedIndex.value = index;
+  }
+
+  static void openShopWithCategory(String? category) {
+    shopCategory.value = category;
+    selectedIndex.value = 1;
   }
 
   static void toggleTheme() {

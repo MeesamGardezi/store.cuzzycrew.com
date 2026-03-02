@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cuzzycrewstore/controller/homeController.dart';
+import 'package:cuzzycrewstore/navigation/core/navWrapperController.dart';
 import 'package:cuzzycrewstore/model/categoryModel.dart';
 import 'package:cuzzycrewstore/model/productModel.dart';
+import 'package:cuzzycrewstore/views/pages/productdetailpage/productDetailPage.dart';
 import 'package:cuzzycrewstore/views/widgets/CategoryBox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -237,7 +239,7 @@ class HomeTabletLayoutState extends State<HomeTabletLayout> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {     NavWrapperController.selectedIndex.value = 1;},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryAccent,
                         padding: EdgeInsets.symmetric(
@@ -325,6 +327,12 @@ class HomeTabletLayoutState extends State<HomeTabletLayout> {
                                   return CategoryBoxItem(
                                     title: item.name,
                                     thumbnail: item.thumbnail,
+                                    launched: item.launched,
+                                    onTap:
+                                        () =>
+                                            NavWrapperController.openShopWithCategory(
+                                              item.slug,
+                                            ),
                                   );
                                 }).toList();
 
@@ -348,6 +356,8 @@ class HomeTabletLayoutState extends State<HomeTabletLayout> {
                                 return CategoryBox(
                                   title: item.title,
                                   thumbnail: item.thumbnail,
+                                  launched: item.launched,
+                                  onTap: item.onTap,
                                 );
                               },
                             );
@@ -447,37 +457,6 @@ class HomeTabletLayoutState extends State<HomeTabletLayout> {
                 ),
               ),
               SizedBox(height: height * 0.02),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: const [
-                    _ContactInfoCard(
-                      icon: '📸',
-                      title: 'Instagram',
-                      link: '@sharikh_naveed',
-                      description:
-                          'Primary platform. 69.7K followers. Photos, Reels, and Stories driving high engagement with a tight-knit community.',
-                    ),
-                    SizedBox(height: 12),
-                    _ContactInfoCard(
-                      icon: '🔗',
-                      title: 'Linktree',
-                      link: 'linktr.ee/sharikh_naveed',
-                      description:
-                          'All links in one place — follow, collab, and connect through the official hub for everything Sharikh.',
-                    ),
-                    SizedBox(height: 12),
-                    _ContactInfoCard(
-                      icon: '📬',
-                      title: 'Inquiries',
-                      link: 'email',
-                      description:
-                          'For partnerships, collaborations, and business requests, reach out directly via official inquiry contact.',
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: height * 0.02),
             ],
           ),
         ),
@@ -501,106 +480,67 @@ class _VerticalProductCard extends StatelessWidget {
     final bool isTablet = width >= 640 && width < 1024;
     final double radius = isMobile ? 8 : (isTablet ? 10 : 12);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: theme.colorScheme.outline),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailPage(product: product),
           ),
-          child: AspectRatio(
-            aspectRatio: 1.2,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(radius),
-              child: Image.asset(product.thumbnail, fit: BoxFit.cover),
-            ),
-          ),
-        ),
-        SizedBox(height: width * 0.012),
-        Text(
-          product.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: textTheme.bodyMedium?.copyWith(
-            color: isDark ? AppColors.darkText : AppColors.lightText,
-            fontSize: width * 0.022,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        SizedBox(height: width * 0.005),
-        Text(
-          '\$${product.price.toStringAsFixed(2)}',
-          style: textTheme.bodyMedium?.copyWith(
-            color: AppColors.primaryAccent,
-            fontSize: width * 0.026,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ContactInfoCard extends StatelessWidget {
-  const _ContactInfoCard({
-    required this.icon,
-    required this.title,
-    required this.link,
-    required this.description,
-  });
-
-  final String icon;
-  final String title;
-  final String link;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final width = MediaQuery.of(context).size.width;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-      ),
+        );
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$icon  $title',
-            style: textTheme.titleMedium?.copyWith(
-              color: isDark ? AppColors.darkText : AppColors.lightText,
-              fontSize: width * 0.030,
-              fontWeight: FontWeight.bold,
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(radius),
+              border: Border.all(color: theme.colorScheme.outline),
             ),
-          ),
-          SizedBox(height: width * 0.01),
-          Text(
-            link,
-            style: textTheme.bodyMedium?.copyWith(
-              color: AppColors.primaryAccent,
-              fontSize: width * 0.028,
-              fontWeight: FontWeight.w700,
+            child: AspectRatio(
+              aspectRatio: 1.2,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child:
+                    product.primaryImage.startsWith('http')
+                        ? Image.network(
+                          product.primaryImage,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (context, error, stackTrace) => Container(
+                                color:
+                                    theme.colorScheme.surfaceContainerHighest,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.image_not_supported_outlined,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                        )
+                        : Image.asset(product.primaryImage, fit: BoxFit.cover),
+              ),
             ),
           ),
           SizedBox(height: width * 0.012),
           Text(
-            description,
+            product.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: textTheme.bodyMedium?.copyWith(
-              color: isDark ? AppColors.slate400 : AppColors.mutedText,
-              fontSize: width * 0.024,
-              height: 1.4,
+              color: isDark ? AppColors.darkText : AppColors.lightText,
+              fontSize: width * 0.022,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: width * 0.005),
+          Text(
+            '\$${product.price.toStringAsFixed(2)}',
+            style: textTheme.bodyMedium?.copyWith(
+              color: AppColors.primaryAccent,
+              fontSize: width * 0.026,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
