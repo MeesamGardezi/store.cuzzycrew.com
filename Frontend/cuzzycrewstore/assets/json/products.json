@@ -1,109 +1,221 @@
-
 {
-	"products": [
-		{
-			"id": "prod_hwd_bone_01",
-			"category": "hoodies",
-			"dateAdded": "2026-02-20T10:00:00Z",
-			"name": "HEAVYWEIGHT HOODIE / BONE",
-			"shortName": "Cuzzy Heavy Hoodie",
-			"price": 120.0,
-			"currency": "USD",
-			"unit": "piece",
-			"availableUnits": 42,
-			"thumbnail": "assets/images/categories/hoodies-thumb.png",
-			"sizeGuideImage": "assets/images/Container.png",
-			"sizes": ["XS", "S", "M", "L", "XL"],
-			"colorVariants": [
-				{
-					"colorName": "Bone",
-					"colorHex": "#D9D2C5",
-					"image": "assets/images/categories/hoodies-thumb.png"
-				},
-				{
-					"colorName": "Onyx",
-					"colorHex": "#2B2B2B",
-					"image": "assets/images/categories/hoodies-thumb.png"
-				}
-			]
-		},
-		{
-			"id": "prod_tee_onyx_02",
-			"category": "tees",
-			"dateAdded": "2026-02-15T10:00:00Z",
-			"name": "CUZZY ARCHIVE TEE / ONYX",
-			"shortName": "Archive Tee",
-			"price": 45.0,
-			"currency": "USD",
-			"unit": "piece",
-			"availableUnits": 78,
-			"thumbnail": "assets/images/categories/tees-thumb.png",
-			"sizeGuideImage": "assets/images/Container.png",
-			"sizes": ["S", "M", "L", "XL"],
-			"colorVariants": [
-				{
-					"colorName": "Onyx",
-					"colorHex": "#111111",
-					"image": "assets/images/categories/tees-thumb.png"
-				},
-				{
-					"colorName": "Slate",
-					"colorHex": "#6B7280",
-					"image": "assets/images/categories/tees-thumb.png"
-				}
-			]
-		},
-		{
-			"id": "prod_cap_slate_03",
-			"category": "caps",
-			"dateAdded": "2026-02-10T10:00:00Z",
-			"name": "CREW ESSENTIAL CAP / SLATE",
-			"shortName": "Essential Cap",
-			"price": 35.0,
-			"currency": "USD",
-			"unit": "piece",
-			"availableUnits": 65,
-			"thumbnail": "assets/images/categories/caps-thumb.png",
-			"sizeGuideImage": "assets/images/Container.png",
-			"sizes": ["ONE SIZE"],
-			"colorVariants": [
-				{
-					"colorName": "Slate",
-					"colorHex": "#485468",
-					"image": "assets/images/categories/caps-thumb.png"
-				},
-				{
-					"colorName": "Navy",
-					"colorHex": "#1F2A44",
-					"image": "assets/images/categories/caps-thumb.png"
-				}
-			]
-		},
-		{
-			"id": "prod_shoe_sand_04",
-			"category": "shoes",
-			"dateAdded": "2026-01-25T10:00:00Z",
-			"name": "RELAXED CARGO JOGGER / SAND",
-			"shortName": "Relaxed Jogger",
-			"price": 95.0,
-			"currency": "USD",
-			"unit": "piece",
-			"availableUnits": 34,
-			"thumbnail": "assets/images/categories/shoes-thumb.png",
-			"sizeGuideImage": "assets/images/Container.png",
-			"sizes": ["28", "30", "32", "34", "36"],
-			"colorVariants": [
-				{
-					"colorName": "Sand",
-					"colorHex": "#C4A36B",
-					"image": "assets/images/categories/shoes-thumb.png"
-				},
-				{
-					"colorName": "Khaki",
-					"colorHex": "#9F8B65",
-					"image": "assets/images/categories/shoes-thumb.png"
-				}
-			]
-		}
-	]
+  "products": [
+    {
+      "id": "prod_hwd_bone_01",
+      "category": "hoodies",
+      "dateAdded": "2026-02-20T10:00:00Z",
+      "name": "HEAVYWEIGHT HOODIE / BONE",
+      "shortName": "Cuzzy Heavy Hoodie",
+      "price": 120.0,
+      "currency": "USD",
+      "unit": "piece",
+      "availableUnits": 48,
+      "thumbnail": "https://www.calvinklein.co.nz/cotton-blend-fleece-hoodie-bright-white-j30j315713yaf",
+      "images": [
+        "http://images.unsplash.com/photo-1602810318383-e386cc2a3ccf",
+        "http://images.unsplash.com/photo-1578587018452-892bacefd3f2",
+        "http://images.unsplash.com/photo-1618354691373-d851c5c3a990"
+      ],
+      "sizeGuideImage": "http://images.unsplash.com/photo-1618354691373-d851c5c3a990",
+      "sizes": ["XS", "S", "M", "L", "XL"],
+      "colorVariants": [
+        {
+          "colorName": "Bone",
+          "colorHex": "#D9D2C5",
+          "image": "http://images.unsplash.com/photo-1602810318383-e386cc2a3ccf"
+        },
+        {
+          "colorName": "Onyx",
+          "colorHex": "#2B2B2B",
+          "image": "http://images.unsplash.com/photo-1578587018452-892bacefd3f2"
+        }
+      ]
+    },
+    {
+      "id": "prod_tee_onyx_02",
+      "category": "tees",
+      "dateAdded": "2026-02-15T10:00:00Z",
+      "name": "CUZZY ARCHIVE TEE / ONYX",
+      "shortName": "Archive Tee",
+      "price": 45.0,
+      "currency": "USD",
+      "unit": "piece",
+      "availableUnits": 85,
+      "thumbnail": "http://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
+      "images": [
+        "http://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
+        "http://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
+        "http://images.unsplash.com/photo-1583743814966-8936f37f4a3c"
+      ],
+      "sizeGuideImage": "http://images.unsplash.com/photo-1583743814966-8936f37f4a3c",
+      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "colorVariants": [
+        {
+          "colorName": "Onyx",
+          "colorHex": "#111111",
+          "image": "http://images.unsplash.com/photo-1521572163474-6864f9cf17ab"
+        },
+        {
+          "colorName": "Slate",
+          "colorHex": "#6B7280",
+          "image": "http://images.unsplash.com/photo-1503342217505-b0a15ec3261c"
+        }
+      ]
+    },
+    {
+      "id": "prod_cap_slate_03",
+      "category": "caps",
+      "dateAdded": "2026-02-10T10:00:00Z",
+      "name": "CREW ESSENTIAL CAP / SLATE",
+      "shortName": "Essential Cap",
+      "price": 35.0,
+      "currency": "USD",
+      "unit": "piece",
+      "availableUnits": 72,
+      "thumbnail": "http://images.unsplash.com/photo-1521369909029-2afed882baee",
+      "images": [
+        "http://images.unsplash.com/photo-1521369909029-2afed882baee",
+        "http://images.unsplash.com/photo-1534215754734-18e55d13e346",
+        "http://images.unsplash.com/photo-1556905055-8f358a7a47b2"
+      ],
+      "sizeGuideImage": "http://images.unsplash.com/photo-1556905055-8f358a7a47b2",
+      "sizes": ["ONE SIZE"],
+      "colorVariants": [
+        {
+          "colorName": "Slate",
+          "colorHex": "#485468",
+          "image": "http://images.unsplash.com/photo-1521369909029-2afed882baee"
+        },
+        {
+          "colorName": "Navy",
+          "colorHex": "#1F2A44",
+          "image": "http://images.unsplash.com/photo-1534215754734-18e55d13e346"
+        }
+      ]
+    },
+    {
+      "id": "prod_jogger_sand_04",
+      "category": "bottoms",
+      "dateAdded": "2026-01-25T10:00:00Z",
+      "name": "RELAXED CARGO JOGGER / SAND",
+      "shortName": "Relaxed Jogger",
+      "price": 95.0,
+      "currency": "USD",
+      "unit": "piece",
+      "availableUnits": 38,
+      "thumbnail": "http://images.unsplash.com/photo-1602293589930-45aad59ba3ab",
+      "images": [
+        "http://images.unsplash.com/photo-1602293589930-45aad59ba3ab",
+        "http://images.unsplash.com/photo-1582552938357-32b906df40cb",
+        "http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2"
+      ],
+      "sizeGuideImage": "http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2",
+      "sizes": ["28", "30", "32", "34", "36"],
+      "colorVariants": [
+        {
+          "colorName": "Sand",
+          "colorHex": "#C4A36B",
+          "image": "http://images.unsplash.com/photo-1602293589930-45aad59ba3ab"
+        },
+        {
+          "colorName": "Khaki",
+          "colorHex": "#9F8B65",
+          "image": "http://images.unsplash.com/photo-1582552938357-32b906df40cb"
+        }
+      ]
+    },
+    {
+      "id": "prod_shoe_black_05",
+      "category": "shoes",
+      "dateAdded": "2026-02-05T10:00:00Z",
+      "name": "TRACK RUNNER / BLACK",
+      "shortName": "Track Runner",
+      "price": 110.0,
+      "currency": "USD",
+      "unit": "pair",
+      "availableUnits": 50,
+      "thumbnail": "http://images.unsplash.com/photo-1598300054620-93a1b2a4f2fa",
+      "images": [
+        "http://images.unsplash.com/photo-1598300054620-93a1b2a4f2fa",
+        "http://images.unsplash.com/photo-1519741491394-3d166528f1c5",
+        "http://images.unsplash.com/photo-1526170375885-4d8ecf77b99f"
+      ],
+      "sizeGuideImage": "http://images.unsplash.com/photo-1526170375885-4d8ecf77b99f",
+      "sizes": ["7", "8", "9", "10", "11", "12"],
+      "colorVariants": [
+        {
+          "colorName": "Black",
+          "colorHex": "#000000",
+          "image": "http://images.unsplash.com/photo-1598300054620-93a1b2a4f2fa"
+        },
+        {
+          "colorName": "White",
+          "colorHex": "#FFFFFF",
+          "image": "http://images.unsplash.com/photo-1519741491394-3d166528f1c5"
+        }
+      ]
+    },
+    {
+      "id": "prod_sweat_midnight_06",
+      "category": "sweatshirts",
+      "dateAdded": "2026-02-18T10:00:00Z",
+      "name": "MIDNIGHT CREWNECK",
+      "shortName": "Midnight Sweatshirt",
+      "price": 85.0,
+      "currency": "USD",
+      "unit": "piece",
+      "availableUnits": 60,
+      "thumbnail": "http://images.unsplash.com/photo-1613760586666-e8680edcdf98",
+      "images": [
+        "http://images.unsplash.com/photo-1613760586666-e8680edcdf98",
+        "http://images.unsplash.com/photo-1621803725064-7b2da7d89f31",
+        "http://images.unsplash.com/photo-1602810318383-e386cc2a3ccf"
+      ],
+      "sizeGuideImage": "http://images.unsplash.com/photo-1621803725064-7b2da7d89f31",
+      "sizes": ["S", "M", "L", "XL"],
+      "colorVariants": [
+        {
+          "colorName": "Midnight",
+          "colorHex": "#1A1A2E",
+          "image": "http://images.unsplash.com/photo-1613760586666-e8680edcdf98"
+        },
+        {
+          "colorName": "Charcoal",
+          "colorHex": "#333333",
+          "image": "http://images.unsplash.com/photo-1621803725064-7b2da7d89f31"
+        }
+      ]
+    },
+    {
+      "id": "prod_short_olive_07",
+      "category": "shorts",
+      "dateAdded": "2026-02-12T10:00:00Z",
+      "name": "UTILITY SHORTS / OLIVE",
+      "shortName": "Olive Shorts",
+      "price": 55.0,
+      "currency": "USD",
+      "unit": "piece",
+      "availableUnits": 44,
+      "thumbnail": "http://images.unsplash.com/photo-1589927986089-3581237880b1",
+      "images": [
+        "http://images.unsplash.com/photo-1589927986089-3581237880b1",
+        "http://images.unsplash.com/photo-1523381294911-8d3cead13475",
+        "http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2"
+      ],
+      "sizeGuideImage": "http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2",
+      "sizes": ["S", "M", "L", "XL"],
+      "colorVariants": [
+        {
+          "colorName": "Olive",
+          "colorHex": "#708238",
+          "image": "http://images.unsplash.com/photo-1589927986089-3581237880b1"
+        },
+        {
+          "colorName": "Beige",
+          "colorHex": "#D6C3A5",
+          "image": "http://images.unsplash.com/photo-1523381294911-8d3cead13475"
+        }
+      ]
+    }
+  ]
 }
