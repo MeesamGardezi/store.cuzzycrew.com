@@ -10,24 +10,25 @@
       "currency": "USD",
       "unit": "piece",
       "availableUnits": 48,
-      "thumbnail": "https://www.calvinklein.co.nz/cotton-blend-fleece-hoodie-bright-white-j30j315713yaf",
+      "thumbnail": "https://www.scnzcrew.com/cdn/shop/files/rn-image_picker_lib_temp_d07f1c7e-be3c-4abc-8d2e-d9b0606d6f94.jpg?v=1769614270",
       "images": [
-        "http://images.unsplash.com/photo-1602810318383-e386cc2a3ccf",
-        "http://images.unsplash.com/photo-1578587018452-892bacefd3f2",
-        "http://images.unsplash.com/photo-1618354691373-d851c5c3a990"
+        "https://www.scnzcrew.com/cdn/shop/files/IMG_0184_720x.jpg?v=1769614270",
+        "https://www.scnzcrew.com/cdn/shop/files/IMG_0186_720x.jpg?v=1769614270",
+        "https://www.scnzcrew.com/cdn/shop/files/IMG_0183_720x.jpg?v=17696142700"
       ],
-      "sizeGuideImage": "http://images.unsplash.com/photo-1618354691373-d851c5c3a990",
+      "sizeGuideImage": "https://www.scnzcrew.com/cdn/shop/files/size-guide-01.jpg?v=1769614270",
       "sizes": ["XS", "S", "M", "L", "XL"],
+      "story": "Crafted with premium heavyweight cotton, this Bone Hoodie is the ultimate comfort piece. Designed for those who appreciate quality and timeless style, it features our signature Cuzzy branding with a modern twist. Perfect for layering or wearing solo.",
       "colorVariants": [
         {
           "colorName": "Bone",
           "colorHex": "#D9D2C5",
-          "image": "http://images.unsplash.com/photo-1602810318383-e386cc2a3ccf"
+          "image": "https://www.scnzcrew.com/cdn/shop/files/IMG_0184_720x.jpg?v=1769614270"
         },
         {
           "colorName": "Onyx",
           "colorHex": "#2B2B2B",
-          "image": "http://images.unsplash.com/photo-1578587018452-892bacefd3f2"
+          "image": "https://www.scnzcrew.com/cdn/shop/files/IMG_0186_720x.jpg?v=1769614270"
         }
       ]
     },
@@ -49,6 +50,7 @@
       ],
       "sizeGuideImage": "http://images.unsplash.com/photo-1583743814966-8936f37f4a3c",
       "sizes": ["S", "M", "L", "XL", "XXL"],
+      "story": "Our Archive Tee pays homage to Cuzzy Crew's roots. This classic onyx piece features an iconic design that's designed to fade beautifully over time, creating a unique vintage look with every wear.",
       "colorVariants": [
         {
           "colorName": "Onyx",
@@ -79,6 +81,7 @@
         "http://images.unsplash.com/photo-1556905055-8f358a7a47b2"
       ],
       "sizeGuideImage": "http://images.unsplash.com/photo-1556905055-8f358a7a47b2",
+      "story": "Keep the sun out of your eyes while repping the crew. This essential cap is your go-to accessory for any occasion, featuring breathable material and a classic silhouette that pairs with everything.",
       "sizes": ["ONE SIZE"],
       "colorVariants": [
         {
@@ -110,6 +113,7 @@
         "http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2"
       ],
       "sizeGuideImage": "http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2",
+      "story": "Engineered for maximum comfort and style, these relaxed cargo joggers combine functionality with fashion. The utilitarian pockets and tapered ankle make them perfect for the modern lifestyle.",
       "sizes": ["28", "30", "32", "34", "36"],
       "colorVariants": [
         {
@@ -141,6 +145,7 @@
         "http://images.unsplash.com/photo-1526170375885-4d8ecf77b99f"
       ],
       "sizeGuideImage": "http://images.unsplash.com/photo-1526170375885-4d8ecf77b99f",
+      "story": "Step into the future with our Track Runner shoes. Designed for performance and style, these kicks feature a responsive sole and sleek design that works for both running and daily wear.",
       "sizes": ["7", "8", "9", "10", "11", "12"],
       "colorVariants": [
         {
@@ -171,6 +176,7 @@
         "http://images.unsplash.com/photo-1621803725064-7b2da7d89f31",
         "http://images.unsplash.com/photo-1602810318383-e386cc2a3ccf"
       ],
+      "story": "Embrace the night with our Midnight Crewneck. This versatile sweatshirt is your companion for cozy evenings and casual hangouts. The premium fabric ensures it stays comfortable for years to come.",
       "sizeGuideImage": "http://images.unsplash.com/photo-1621803725064-7b2da7d89f31",
       "sizes": ["S", "M", "L", "XL"],
       "colorVariants": [
@@ -202,6 +208,7 @@
         "http://images.unsplash.com/photo-1523381294911-8d3cead13475",
         "http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2"
       ],
+      "story": "Utility meets style in these Olive Shorts. Designed for versatility, they feature multiple pockets and a comfortable fit that's perfect for outdoor adventures or casual Fridays.",
       "sizeGuideImage": "http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2",
       "sizes": ["S", "M", "L", "XL"],
       "colorVariants": [
