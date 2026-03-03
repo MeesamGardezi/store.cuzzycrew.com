@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'dart:typed_data';
 import '../controllers/product_controller.dart';
 
 class ProductsPage extends StatefulWidget {
@@ -184,10 +184,10 @@ class _ProductsPageState extends State<ProductsPage> {
     final storyController = TextEditingController();
     final sizesController = TextEditingController();
 
-    File? thumbnailFile;
-    List<File> imageFiles = [];
+    Uint8List? thumbnailBytes;
+    List<Uint8List> imageBytes = [];
     List<Map<String, dynamic>> colorVariants = [];
-    File? sizeGuideImageFile;
+    Uint8List? sizeGuideImageBytes;
     final ImagePicker _picker = ImagePicker();
 
     showDialog(
@@ -315,7 +315,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  if (thumbnailFile != null)
+                                  if (thumbnailBytes != null)
                                     Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -332,20 +332,13 @@ class _ProductsPageState extends State<ProductsPage> {
                                             borderRadius: BorderRadius.circular(
                                               4,
                                             ),
-                                            child: Image.file(
-                                              thumbnailFile!,
+                                            child: Image.memory(
+                                              thumbnailBytes!,
                                               fit: BoxFit.cover,
                                             ),
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        Text(
-                                          thumbnailFile!.path.split('/').last,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
                                         const SizedBox(height: 8),
                                       ],
                                     ),
@@ -355,8 +348,9 @@ class _ProductsPageState extends State<ProductsPage> {
                                         source: ImageSource.gallery,
                                       );
                                       if (image != null) {
+                                        final bytes = await image.readAsBytes();
                                         setState(() {
-                                          thumbnailFile = File(image.path);
+                                          thumbnailBytes = bytes;
                                         });
                                       }
                                     },
@@ -384,7 +378,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  if (imageFiles.isNotEmpty)
+                                  if (imageBytes.isNotEmpty)
                                     Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -393,11 +387,11 @@ class _ProductsPageState extends State<ProductsPage> {
                                           spacing: 8,
                                           runSpacing: 8,
                                           children:
-                                              imageFiles.asMap().entries.map((
+                                              imageBytes.asMap().entries.map((
                                                 entry,
                                               ) {
                                                 final index = entry.key;
-                                                final file = entry.value;
+                                                final bytes = entry.value;
                                                 return Stack(
                                                   children: [
                                                     Container(
@@ -414,8 +408,8 @@ class _ProductsPageState extends State<ProductsPage> {
                                                             BorderRadius.circular(
                                                               4,
                                                             ),
-                                                        child: Image.file(
-                                                          file,
+                                                        child: Image.memory(
+                                                          bytes,
                                                           fit: BoxFit.cover,
                                                         ),
                                                       ),
@@ -426,7 +420,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                                       child: IconButton(
                                                         onPressed: () {
                                                           setState(() {
-                                                            imageFiles.removeAt(
+                                                            imageBytes.removeAt(
                                                               index,
                                                             );
                                                           });
@@ -451,11 +445,13 @@ class _ProductsPageState extends State<ProductsPage> {
                                           await _picker.pickMultiImage();
                                       if (images.isNotEmpty) {
                                         setState(() {
-                                          imageFiles.addAll(
-                                            images
-                                                .map((img) => File(img.path))
-                                                .toList(),
-                                          );
+                                          for (final img in images) {
+                                            img.readAsBytes().then((bytes) {
+                                              setState(() {
+                                                imageBytes.add(bytes);
+                                              });
+                                            });
+                                          }
                                         });
                                       }
                                     },
@@ -485,7 +481,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  if (sizeGuideImageFile != null)
+                                  if (sizeGuideImageBytes != null)
                                     Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -502,8 +498,8 @@ class _ProductsPageState extends State<ProductsPage> {
                                             borderRadius: BorderRadius.circular(
                                               4,
                                             ),
-                                            child: Image.file(
-                                              sizeGuideImageFile!,
+                                            child: Image.memory(
+                                              sizeGuideImageBytes!,
                                               fit: BoxFit.cover,
                                             ),
                                           ),
@@ -518,8 +514,9 @@ class _ProductsPageState extends State<ProductsPage> {
                                         source: ImageSource.gallery,
                                       );
                                       if (image != null) {
+                                        final bytes = await image.readAsBytes();
                                         setState(() {
-                                          sizeGuideImageFile = File(image.path);
+                                          sizeGuideImageBytes = bytes;
                                         });
                                       }
                                     },
@@ -677,13 +674,8 @@ class _ProductsPageState extends State<ProductsPage> {
                                       'availableUnits':
                                           int.tryParse(stockController.text) ??
                                           0,
-                                      'thumbnail': thumbnailFile?.path ?? '',
-                                      'thumbnailFile': thumbnailFile,
-                                      'images':
-                                          imageFiles
-                                              .map((f) => f.path)
-                                              .toList(),
-                                      'imageFiles': imageFiles,
+                                      'thumbnailBytes': thumbnailBytes,
+                                      'images': imageBytes,
                                       'sizes':
                                           sizesController.text
                                               .split(',')
@@ -691,9 +683,8 @@ class _ProductsPageState extends State<ProductsPage> {
                                               .where((e) => e.isNotEmpty)
                                               .toList(),
                                       'story': storyController.text,
-                                      'sizeGuideImage':
-                                          sizeGuideImageFile?.path ?? '',
-                                      'sizeGuideImageFile': sizeGuideImageFile,
+                                      'sizeGuideImageBytes':
+                                          sizeGuideImageBytes,
                                       'colorVariants': colorVariants,
                                     };
                                     debugPrint(
@@ -723,7 +714,7 @@ class _ProductsPageState extends State<ProductsPage> {
   ) {
     final colorNameController = TextEditingController();
     final colorHexController = TextEditingController();
-    File? variantImageFile;
+    Uint8List? variantImageBytes;
 
     return StatefulBuilder(
       builder:
@@ -796,7 +787,7 @@ class _ProductsPageState extends State<ProductsPage> {
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 8),
-                        if (variantImageFile != null)
+                        if (variantImageBytes != null)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -808,8 +799,8 @@ class _ProductsPageState extends State<ProductsPage> {
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(4),
-                                  child: Image.file(
-                                    variantImageFile!,
+                                  child: Image.memory(
+                                    variantImageBytes!,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -823,8 +814,9 @@ class _ProductsPageState extends State<ProductsPage> {
                               source: ImageSource.gallery,
                             );
                             if (image != null) {
+                              final bytes = await image.readAsBytes();
                               variantSetState(() {
-                                variantImageFile = File(image.path);
+                                variantImageBytes = bytes;
                               });
                             }
                           },
@@ -857,8 +849,8 @@ class _ProductsPageState extends State<ProductsPage> {
                     colorVariants.add({
                       'colorName': colorNameController.text,
                       'colorHex': colorHexController.text,
-                      'image': variantImageFile?.path ?? '',
-                      'imageFile': variantImageFile,
+                      'imageBytes': variantImageBytes ?? '',
+                      'imageFile': variantImageBytes,
                     });
                   });
                   Navigator.pop(ctx);

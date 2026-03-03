@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import '../controllers/product_controller.dart' hide debugPrint;
+import 'dart:typed_data';
+import '../controllers/product_controller.dart';
 
 class CategoriesPage extends StatefulWidget {
   const CategoriesPage({Key? key}) : super(key: key);
@@ -185,7 +185,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
     final descriptionController = TextEditingController();
     final tagsController = TextEditingController();
     final sortOrderController = TextEditingController(text: '1');
-    File? thumbnailFile;
+    Uint8List? thumbnailBytes;
     bool isLaunched = true;
     bool isFeatured = false;
     final ImagePicker _picker = ImagePicker();
@@ -253,7 +253,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  if (thumbnailFile != null)
+                                  if (thumbnailBytes != null)
                                     Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -270,18 +270,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                             borderRadius: BorderRadius.circular(
                                               4,
                                             ),
-                                            child: Image.file(
-                                              thumbnailFile!,
+                                            child: Image.memory(
+                                              thumbnailBytes!,
                                               fit: BoxFit.cover,
                                             ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          thumbnailFile!.path.split('/').last,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
                                           ),
                                         ),
                                         const SizedBox(height: 8),
@@ -293,8 +285,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                         source: ImageSource.gallery,
                                       );
                                       if (image != null) {
+                                        final bytes = await image.readAsBytes();
                                         setState(() {
-                                          thumbnailFile = File(image.path);
+                                          thumbnailBytes = bytes;
                                         });
                                       }
                                     },
@@ -371,8 +364,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                 ElevatedButton(
                                   onPressed: () {
                                     final category = {
-                                      'thumbnailFile':
-                                          thumbnailFile?.path ?? '',
+                                      'thumbnailBytes': thumbnailBytes ?? '',
                                       'name': nameController.text,
                                       'slug': nameController.text
                                           .toLowerCase()
