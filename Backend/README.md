@@ -19,7 +19,6 @@
 | PATCH | `/api/admin/categories/:id` | ADMIN | `Category` |
 | DELETE | `/api/admin/categories/:id` | ADMIN | `Category` |
 | POST | `/api/admin/products` | ADMIN | `Product` (stored to Firestore; app endpoints normalize to frontend shape) |
-
 | PATCH | `/api/admin/products/:id` | ADMIN | `Product` |
 | DELETE | `/api/admin/products/:id` | ADMIN | `Product` |
 | POST | `/api/admin/variants` | ADMIN | `Variant` |
@@ -127,6 +126,71 @@ Products are expected to contain the frontend fields (e.g. `images`, `story`, `s
 
 The backend will also tolerate backend-specific fields (e.g. `priceMin` in cents) and will normalize them for the app endpoints.
 
+
+## Admin product image upload (Firebase Storage)
+
+`POST /api/admin/products` and `PATCH /api/admin/products/:id` support both:
+
+- JSON (`Content-Type: application/json`)
+- Multipart file upload (`Content-Type: multipart/form-data`)
+
+### Multipart format
+Send one text field:
+
+- `data` = JSON string for the product payload
+
+And any of these file fields:
+
+- `thumbnail` (single file)
+- `sizeGuideImage` (single file)
+- `images` (multiple files)
+
+Uploaded files are stored in Firebase Storage and the product document is written with the frontend-shaped fields:
+
+- `thumbnail: <publicUrl>`
+- `sizeGuideImage: <publicUrl>`
+- `images: [<publicUrl>, ...]`
+
+### Example (curl)
+
+```bash
+curl -X POST "http://localhost:4000/api/admin/products" \
+  -H "Authorization: Bearer <ADMIN_ACCESS_TOKEN>" \
+  -F 'data={
+    "name":"HEAVYWEIGHT HOODIE / BONE",
+    "slug":"heavyweight-hoodie-bone",
+    "category":"hoodies",
+    "dateAdded":"2026-02-20T10:00:00Z",
+    "shortName":"Cuzzy Heavy Hoodie",
+    "price":120.0,
+    "currency":"USD",
+    "unit":"piece",
+    "availableUnits":48,
+    "sizes":["XS","S","M","L","XL"],
+    "story":"Crafted with premium heavyweight cotton...",
+    "colorVariants":[
+      {"colorName":"Bone","colorHex":"#D9D2C5","image":""},
+      {"colorName":"Onyx","colorHex":"#2B2B2B","image":""}
+    ]
+  }' \
+  -F "thumbnail=@./thumbnail.jpg" \
+  -F "sizeGuideImage=@./size-guide.jpg" \
+  -F "images=@./img1.jpg" \
+  -F "images=@./img2.jpg"
+```
+
+Notes:
+- `colorVariants[].image` is not automatically linked to uploaded files.
+- If you provide `thumbnail`/`sizeGuideImage`/`images` URLs in the JSON payload, they will be used when no file is uploaded for that field.
+
+### Firebase Storage configuration
+Firebase Admin must be initialized with a Storage bucket. By default this code uses:
+
+- `<FIREBASE_PROJECT_ID>.appspot.com`
+
+Optionally you can set:
+
+- `FIREBASE_STORAGE_BUCKET=<your-bucket-name>`
 
 ## API Endpoints
 

@@ -10,6 +10,32 @@ const adminOrderRepository = require('../repositories/adminOrderRepository');
 const adminCouponRepository = require('../repositories/adminCouponRepository');
 const orderRepository = require('../repositories/orderRepository');
 const { getDb } = require('../config/firebase');
+const { getStorageService } = require('./storageService');
+
+function safeFileName(name) {
+  return String(name || 'file')
+    .replace(/\\/g, '_')
+    .replace(/\//g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/[^a-zA-Z0-9._-]/g, '');
+}
+
+function storageKeyForProduct({ productId, kind, originalName }) {
+  const fileName = safeFileName(originalName);
+  return `products/${productId}/${kind}_${Date.now()}_${fileName}`;
+}
+
+async function uploadIfPresent({ storage, productId, kind, file }) {
+  if (!file) return null;
+  const key = storageKeyForProduct({ productId, kind, originalName: file.originalname });
+  const uploaded = await storage.uploadImage({
+    buffer: file.buffer,
+    contentType: file.mimetype,
+    fileName: file.originalname,
+    key,
+  });
+  return storage.generatePublicUrl({ key: uploaded.key });
+}
 
 async function recomputeAvailableUnits({ productId, nowIsoValue }) {
   const db = getDb();
@@ -19,11 +45,35 @@ async function recomputeAvailableUnits({ productId, nowIsoValue }) {
   return total;
 }
 
-async function createProduct({ actorUserId, payload, correlationId }) {
+async function createProduct({ actorUserId, payload, files = {}, correlationId }) {
   try {
     const now = nowIso();
+    const productId = newId();
+    const storage = getStorageService();
+
+    const thumbnailUrl = await uploadIfPresent({
+      storage,
+      productId,
+      kind: 'thumbnail',
+      file: files?.thumbnail?.[0],
+    });
+
+    const sizeGuideUrl = await uploadIfPresent({
+      storage,
+      productId,
+      kind: 'sizeGuideImage',
+      file: files?.sizeGuideImage?.[0],
+    });
+
+    const imagesFiles = Array.isArray(files?.images) ? files.images : [];
+    const imageUrls = [];
+    for (const f of imagesFiles) {
+      const url = await uploadIfPresent({ storage, productId, kind: 'image', file: f });
+      if (url) imageUrls.push(url);
+    }
+
     const created = await adminProductRepository.createProduct({
-      productId: newId(),
+      productId,
       data: {
         name: payload.name,
         slug: payload.slug,
@@ -34,9 +84,9 @@ async function createProduct({ actorUserId, payload, correlationId }) {
         currency: payload.currency || 'USD',
         unit: payload.unit || 'piece',
         availableUnits: payload.availableUnits != null ? payload.availableUnits : 0,
-        thumbnail: payload.thumbnail || null,
-        images: payload.images || [],
-        sizeGuideImage: payload.sizeGuideImage || null,
+        thumbnail: thumbnailUrl || payload.thumbnail || null,
+        images: imageUrls.length ? imageUrls : payload.images || [],
+        sizeGuideImage: sizeGuideUrl || payload.sizeGuideImage || null,
         sizes: payload.sizes || [],
         story: payload.story || null,
         colorVariants: payload.colorVariants || [],
@@ -68,12 +118,42 @@ async function createProduct({ actorUserId, payload, correlationId }) {
   }
 }
 
-async function updateProduct({ actorUserId, productId, patch, correlationId }) {
+async function updateProduct({ actorUserId, productId, patch, files = {}, correlationId }) {
   const before = await adminProductRepository.getById(productId);
   if (!before) throw new ApiError({ status: 404, code: 'NOT_FOUND', message: 'Product not found', details: [] });
 
   try {
-    const after = await adminProductRepository.updateProduct({ productId, patch, nowIso: nowIso() });
+    const storage = getStorageService();
+
+    const thumbnailUrl = await uploadIfPresent({
+      storage,
+      productId,
+      kind: 'thumbnail',
+      file: files?.thumbnail?.[0],
+    });
+
+    const sizeGuideUrl = await uploadIfPresent({
+      storage,
+      productId,
+      kind: 'sizeGuideImage',
+      file: files?.sizeGuideImage?.[0],
+    });
+
+    const imagesFiles = Array.isArray(files?.images) ? files.images : [];
+    const imageUrls = [];
+    for (const f of imagesFiles) {
+      const url = await uploadIfPresent({ storage, productId, kind: 'image', file: f });
+      if (url) imageUrls.push(url);
+    }
+
+    const computedPatch = {
+      ...patch,
+      ...(thumbnailUrl ? { thumbnail: thumbnailUrl } : {}),
+      ...(sizeGuideUrl ? { sizeGuideImage: sizeGuideUrl } : {}),
+      ...(imageUrls.length ? { images: imageUrls } : {}),
+    };
+
+    const after = await adminProductRepository.updateProduct({ productId, patch: computedPatch, nowIso: nowIso() });
 
     await auditLogService.writeAuditLog({
       actorUserId,

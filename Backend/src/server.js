@@ -22,7 +22,14 @@ async function createServer() {
   app.disable('x-powered-by');
 
   app.use(helmet());
-  app.use(cors({ origin: config.corsOrigin, credentials: true }));
+  const allowAllOrigins = String(config.corsOrigin || '').trim() === '*';
+  app.use(
+    cors(
+      allowAllOrigins
+        ? { origin: '*', credentials: false }
+        : { origin: config.corsOrigin, credentials: true }
+    )
+  );
 
   app.use(correlationIdMiddleware);
   app.use(createHttpLogger());

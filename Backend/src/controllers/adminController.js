@@ -6,6 +6,7 @@ const createProduct = asyncHandler(async (req, res) => {
   const created = await adminService.createProduct({
     actorUserId: req.auth.userId,
     payload: req.validated.body,
+    files: req.files || {},
     correlationId: req.correlationId,
   });
   return sendSuccess(res, { data: created, message: '' });
@@ -17,6 +18,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     actorUserId: req.auth.userId,
     productId: id,
     patch: req.validated.body,
+    files: req.files || {},
     correlationId: req.correlationId,
   });
   return sendSuccess(res, { data: updated, message: '' });

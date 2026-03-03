@@ -20,6 +20,7 @@ const envSchema = z.object({
   FIREBASE_PROJECT_ID: z.string().optional(),
   FIREBASE_SERVICE_ACCOUNT_PATH: z.string().optional(),
   FIREBASE_SERVICE_ACCOUNT_JSON: z.string().optional(),
+  FIREBASE_STORAGE_BUCKET: z.string().optional(),
 
   RATE_LIMIT_GLOBAL_MAX: z.coerce.number().int().positive().default(600),
 }).passthrough();
@@ -54,6 +55,7 @@ function getConfig() {
       projectId: env.FIREBASE_PROJECT_ID,
       serviceAccountPath: env.FIREBASE_SERVICE_ACCOUNT_PATH,
       serviceAccountJson: env.FIREBASE_SERVICE_ACCOUNT_JSON,
+      storageBucket: env.FIREBASE_STORAGE_BUCKET,
     },
     rateLimit: {
       global: { maxRequests: env.RATE_LIMIT_GLOBAL_MAX },
