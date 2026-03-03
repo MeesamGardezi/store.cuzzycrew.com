@@ -3,7 +3,7 @@
 ## Endpoint quick reference
 
 | Method | Path | Auth | Returns (success `data` shape) |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | GET | `/api/categories` | No | `{ categories: Category[] }` (frontend-shaped) |
 | GET | `/api/products` | No | `{ products: Product[] }` (frontend-shaped) |
 | GET | `/api/products/:id` | No | `Product` (frontend-shaped) |
@@ -38,6 +38,28 @@ This folder contains the Node.js/Express backend using a layered architecture:
 - `src/validators` (Zod request schemas)
 - `src/config` (env + firebase + stripe)
 - `src/utils` (helpers)
+
+## Dependencies
+
+### Runtime (`dependencies`)
+- `bcrypt`
+- `cors`
+- `dotenv`
+- `express`
+- `express-rate-limit`
+- `firebase-admin`
+- `helmet`
+- `jsonwebtoken`
+- `morgan`
+- `multer`
+- `pino`
+- `pino-http`
+- `stripe`
+- `uuid`
+- `zod`
+
+### Development (`devDependencies`)
+- `nodemon`
 
 All APIs are served under the `/api` prefix.
 
