@@ -1,7 +1,7 @@
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 
 function newId() {
-  return uuidv4();
+  return randomUUID();
 }
 
 function nowIso() {

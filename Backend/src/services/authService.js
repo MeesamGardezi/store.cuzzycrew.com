@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 
 const { getConfig } = require('../config/env');
 const { ApiError } = require('../utils/apiError');
@@ -20,7 +20,7 @@ async function register({ email, password, firstName, lastName, correlationId })
   const emailLower = email.toLowerCase();
   const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
 
-  const userId = uuidv4();
+  const userId = randomUUID();
 
   try {
     const user = await userRepository.createUserWithUniqueEmail({
@@ -34,7 +34,7 @@ async function register({ email, password, firstName, lastName, correlationId })
       nowIso: nowIso(),
     });
 
-    const tokenId = uuidv4();
+    const tokenId = randomUUID();
     const refreshExpiresAt = new Date(Date.now() + config.jwt.refreshTtlSeconds * 1000).toISOString();
 
     await refreshTokenRepository.create({
@@ -74,7 +74,7 @@ async function login({ email, password, sessionToken, correlationId }) {
 
   await cartService.mergeGuestCartIntoUserCart({ userId: user.id, sessionToken });
 
-  const tokenId = uuidv4();
+  const tokenId = randomUUID();
   const refreshExpiresAt = new Date(Date.now() + config.jwt.refreshTtlSeconds * 1000).toISOString();
 
   await refreshTokenRepository.create({

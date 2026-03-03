@@ -1,5 +1,33 @@
 # Backend API (store.cuzzycrew.com)
 
+## Endpoint quick reference
+
+| Method | Path | Auth | Returns (success `data` shape) |
+|---|---|---|---|
+| GET | `/api/categories` | No | `{ categories: Category[] }` (frontend-shaped) |
+| GET | `/api/products` | No | `{ products: Product[] }` (frontend-shaped) |
+| GET | `/api/products/:id` | No | `Product` (frontend-shaped) |
+| GET | `/api/website-banner` | No | `{ images: BannerImage[] }` |
+| POST | `/api/orders` | Optional | `{ order: Order, items: OrderItem[] }` |
+| GET | `/api/orders` | Yes | `{ items: Order[], nextCursor: string \| null }` |
+| GET | `/api/orders/:orderId` | Yes | `{ order: Order, items: OrderItem[] }` |
+| POST | `/api/orders/:orderId/cancel` | Yes | `{ order: Order, items: OrderItem[] }` |
+| POST | `/api/auth/register` | No | `{ user: { id, email, role }, tokens: { accessToken, refreshToken } }` |
+| POST | `/api/auth/login` | No | `{ user: { id, email, role }, tokens: { accessToken, refreshToken } }` |
+| POST | `/api/auth/refresh` | No | `{ accessToken: string }` |
+| POST | `/api/admin/categories` | ADMIN | `Category` |
+| PATCH | `/api/admin/categories/:id` | ADMIN | `Category` |
+| DELETE | `/api/admin/categories/:id` | ADMIN | `Category` |
+| POST | `/api/admin/products` | ADMIN | `Product` (stored to Firestore; app endpoints normalize to frontend shape) |
+
+| PATCH | `/api/admin/products/:id` | ADMIN | `Product` |
+| DELETE | `/api/admin/products/:id` | ADMIN | `Product` |
+| POST | `/api/admin/variants` | ADMIN | `Variant` |
+| PATCH | `/api/admin/variants/:id/stock` | ADMIN | `Variant` |
+| PUT | `/api/admin/website-banner` | ADMIN | `{ images: BannerImage[] }` |
+| POST | `/api/create-checkout-session` | No | `{ sessionId: string, checkoutDraftId: string }` (if enabled) |
+| POST | `/api/webhook` | No | `{ ok: true }` (if enabled) |
+
 ## Overview
 This folder contains the Node.js/Express backend using a layered architecture:
 
@@ -14,10 +42,11 @@ This folder contains the Node.js/Express backend using a layered architecture:
 
 All APIs are served under the `/api` prefix.
 
+
 ## Requirements
 - Node.js
 - Firebase project with Firestore enabled
-- Stripe account (test keys are fine for local)
+- Stripe account (only test template endpoints are added)
 
 ## Install & Run
 
@@ -42,8 +71,13 @@ Copy the example file and fill in secrets:
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 
+### Common variables
+- `NODE_ENV` (`development` | `test` | `production`)
+- `CORS_ORIGIN` (default `*`)
+- `RATE_LIMIT_GLOBAL_MAX` (default `600`)
+
 ### Firebase credentials (recommended)
-Use a service account JSON file path:
+Local development can use a service account JSON file path:
 
 - `FIREBASE_PROJECT_ID=store-cuzzycrew-com`
 - `FIREBASE_SERVICE_ACCOUNT_PATH=./store-cuzzycrew-com-firebase-adminsdk-xxxx.json`
@@ -51,6 +85,12 @@ Use a service account JSON file path:
 Notes:
 - The service account JSON contains a private key. Do not commit it.
 - Firestore must be created/enabled in Firebase Console; otherwise queries can fail with gRPC `5 NOT_FOUND`.
+
+### Firebase credentials on Vercel/serverless
+Use:
+
+- `FIREBASE_SERVICE_ACCOUNT_JSON` = the full JSON content (as a string)
+- `FIREBASE_PROJECT_ID` = your Firebase project id
 
 ## Response format
 
@@ -77,105 +117,38 @@ Send in requests:
 ### Admin routes
 Admin routes require the logged-in user to have `role: "ADMIN"` in the Firestore `users/{userId}` document.
 
-## Seeding Firestore (minimum)
-To test catalog/cart/orders you should create at least:
+## Data model (high level)
+- **`categories`**: app categories (must match `categories.json` item shape)
+- **`products`**: app products (must match `products.json` item shape)
+- **`orders`**: orders created by `POST /api/orders`
+- **`orderItems`**: items for each order
 
-### `categories/cat_hoodies_001`
-```json
-{
-  "name": "Hoodies",
-  "deletedAt": null,
-  "createdAt": "2026-02-27T00:00:00.000Z",
-  "updatedAt": "2026-02-27T00:00:00.000Z"
-}
-```
+Products are expected to contain the frontend fields (e.g. `images`, `story`, `sizeGuideImage`, etc.) so that `GET /api/products` matches the frontend JSON.
 
-### `products/prod_hoodie_001`
-```json
-{
-  "name": "Cuzzy Crew Hoodie",
-  "slug": "cuzzy-crew-hoodie",
-  "description": "Premium hoodie",
-  "categoryId": "cat_hoodies_001",
-  "priceMin": 4999,
-  "colors": ["Black", "Cream"],
-  "sizes": ["S", "M", "L"],
-  "deletedAt": null,
-  "createdAt": "2026-02-27T00:00:00.000Z",
-  "updatedAt": "2026-02-27T00:00:00.000Z"
-}
-```
+The backend will also tolerate backend-specific fields (e.g. `priceMin` in cents) and will normalize them for the app endpoints.
 
-### `productVariants/var_hoodie_black_m_001`
-```json
-{
-  "productId": "prod_hoodie_001",
-  "label": "Black / M",
-  "price": 4999,
-  "stock": 20,
-  "deletedAt": null,
-  "createdAt": "2026-02-27T00:00:00.000Z",
-  "updatedAt": "2026-02-27T00:00:00.000Z"
-}
-```
 
 ## API Endpoints
+
+### Conventions
+- **Base URL (local)**
+  - `http://localhost:4000/api`
+- **Base URL (Vercel)**
+  - `https://<your-backend>.vercel.app/api`
+- **Content-Type**
+  - `Content-Type: application/json`
+- **Auth header (when required)**
+  - `Authorization: Bearer <accessToken>`
 
 ### Auth
 - `POST /api/auth/register`
 - `POST /api/auth/login` (rate-limited)
 - `POST /api/auth/refresh`
 
-### Catalog
-- `GET /api/categories`
-- `GET /api/products` (pagination/filter/sort)
-- `GET /api/products/:slug`
-- `GET /api/products/:id/recommendations`
+#### `POST /api/auth/register`
+Creates a user and returns access+refresh tokens.
 
-### Cart (guest-first)
-Guest requests require `x-session-token`.
-
-- `GET /api/cart`
-- `POST /api/cart/items`
-- `PATCH /api/cart/items/:itemId`
-- `DELETE /api/cart/items/:itemId`
-- `POST /api/cart/apply-coupon`
-- `DELETE /api/cart/coupon`
-
-### Checkout & Orders
-- `POST /api/checkout/quote`
-- `POST /api/orders` (requires `Idempotency-Key`)
-- `GET /api/orders`
-- `GET /api/orders/:orderId`
-- `POST /api/orders/:orderId/cancel`
-
-### Payments (Stripe)
-- `POST /api/payments/intent`
-- `POST /api/payments/webhook`
-- `GET /api/payments/:orderId/status`
-
-### Admin (ADMIN role)
-- `POST /api/admin/products`
-- `PATCH /api/admin/products/:id`
-- `DELETE /api/admin/products/:id`
-- `POST /api/admin/variants`
-- `PATCH /api/admin/variants/:id/stock`
-- `GET /api/admin/orders`
-- `PATCH /api/admin/orders/:id/status`
-- `POST /api/admin/coupons`
-- `GET /api/admin/dashboard`
-
-## Postman testing (quick)
-
-### Base
-- Base URL: `http://localhost:4000/api`
-- Headers:
-  - JSON: `Content-Type: application/json`
-  - Guest cart: `x-session-token: guest_123456789`
-  - Auth: `Authorization: Bearer <token>`
-
-### Register
-`POST /api/auth/register`
+Request body:
 ```json
 {
   "email": "user1@cuzzycrew.com",
@@ -185,141 +158,261 @@ Guest requests require `x-session-token`.
 }
 ```
 
-### Login
-`POST /api/auth/login`
+#### `POST /api/auth/login`
+Logs in a user and returns access+refresh tokens.
+
+Request body:
 ```json
 {
   "email": "user1@cuzzycrew.com",
-  "password": "Password123!",
-  "sessionToken": "guest_123456789"
+  "password": "Password123!"
 }
 ```
 
-### Create product (admin)
-`POST /api/admin/products`
+#### `POST /api/auth/refresh`
+Exchanges a refresh token for a new access token.
+
+Request body:
 ```json
 {
-  "name": "Cuzzy Crew Hoodie",
-  "slug": "cuzzy-crew-hoodie",
-  "description": "Premium hoodie",
-  "categoryId": "cat_hoodies_001",
-  "priceMin": 4999,
-  "colors": ["Black"],
-  "sizes": ["M"]
+  "refreshToken": "<refreshToken>"
 }
 ```
 
-### Create variant (admin)
-`POST /api/admin/variants`
+### Public app endpoints (frontend-shaped)
+These endpoints are the canonical endpoints used by the frontend.
+
+- `GET /api/categories`
+- `GET /api/products`
+- `GET /api/products/:id`
+- `GET /api/website-banner`
+
+#### `GET /api/categories`
+Returns data shaped like `Frontend/.../assets/json/categories.json`.
+
+Response:
 ```json
 {
-  "productId": "<PRODUCT_ID>",
-  "sku": "HOODIE-BLK-M-001",
-  "label": "Black / M",
-  "price": 4999,
-  "stock": 20
+  "success": true,
+  "data": {
+    "categories": []
+  },
+  "message": ""
 }
 ```
 
+#### `GET /api/products`
+Returns data shaped like `Frontend/.../assets/json/products.json`.
 
-
-## Flutter integration (Dart)
-Below are minimal examples using the `http` package.
-
-### Add dependency
-In `pubspec.yaml`:
-
-```yaml
-dependencies:
-  http: ^1.2.2
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "products": []
+  },
+  "message": ""
+}
 ```
 
-### API client helper
-```dart
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+Each product object includes:
+- `id`
+- `category`
+- `dateAdded`
+- `name`
+- `shortName`
+- `price`
+- `currency`
+- `unit`
+- `availableUnits`
+- `thumbnail`
+- `images`
+- `sizeGuideImage`
+- `sizes`
+- `story`
+- `colorVariants`
 
-class ApiClient {
-  ApiClient({required this.baseUrl});
+#### `GET /api/products/:id`
+Returns a single product by document id.
 
-  final String baseUrl;
-  String? accessToken;
-  String sessionToken = 'guest_123456789';
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "prod_cap_slate_03",
+    "category": "caps",
+    "dateAdded": "2026-02-10T10:00:00Z",
+    "name": "CREW ESSENTIAL CAP / SLATE",
+    "shortName": "Essential Cap",
+    "price": 35,
+    "currency": "USD",
+    "unit": "piece",
+    "availableUnits": 0,
+    "thumbnail": "https://...",
+    "images": [],
+    "sizeGuideImage": "https://...",
+    "sizes": ["ONE SIZE"],
+    "story": "...",
+    "colorVariants": []
+  },
+  "message": ""
+}
+```
 
-  Map<String, String> _headers({bool auth = false, bool guest = false}) {
-    final h = <String, String>{'Content-Type': 'application/json'};
-    if (auth && accessToken != null) h['Authorization'] = 'Bearer $accessToken';
-    if (guest) h['x-session-token'] = sessionToken;
-    return h;
-  }
+#### `GET /api/website-banner`
+Returns website banner image data shaped like the frontend asset.
 
-  Future<Map<String, dynamic>> getJson(String path, {bool auth = false, bool guest = false}) async {
-    final res = await http.get(Uri.parse('$baseUrl$path'), headers: _headers(auth: auth, guest: guest));
-    return jsonDecode(res.body) as Map<String, dynamic>;
-  }
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "images": []
+  },
+  "message": ""
+}
+```
 
-  Future<Map<String, dynamic>> postJson(String path, Object body, {bool auth = false, bool guest = false, Map<String, String>? extraHeaders}) async {
-    final headers = _headers(auth: auth, guest: guest);
-    if (extraHeaders != null) headers.addAll(extraHeaders);
+### Orders
 
-    final res = await http.post(
-      Uri.parse('$baseUrl$path'),
-      headers: headers,
-      body: jsonEncode(body),
-    );
+#### `POST /api/orders`
+Creates an order using a minimal payload (cart is stored client-side).
 
-    return jsonDecode(res.body) as Map<String, dynamic>;
+Auth:
+- Optional (if authenticated, `userId` is attached to the order)
+
+Headers:
+- Optional `idempotency-key: <string>`
+
+Request body:
+```json
+{
+  "items": [
+    {
+      "productId": "prod_cap_slate_03",
+      "quantity": 1,
+      "selectedSize": "ONE SIZE",
+      "selectedColor": "#000000"
+    }
+  ],
+  "currency": "USD",
+  "shippingAddress": {
+    "fullName": "Hiba Rafique",
+    "phone": "+92-300-1234567",
+    "addressLine1": "Street 12, House 34",
+    "city": "Rawalpindi",
+    "postalCode": "46220",
+    "country": "PK"
   }
 }
 ```
 
-### Register
-```dart
-final api = ApiClient(baseUrl: 'http://localhost:4000/api');
-final res = await api.postJson('/auth/register', {
-  'email': 'user1@cuzzycrew.com',
-  'password': 'Password123!',
-  'firstName': 'User',
-  'lastName': 'One',
-});
+Behavior:
+- Validates product exists and is not deleted
+- Validates `availableUnits` is sufficient
+- Computes totals using product `price` or `priceMin` fallback
+- Decrements `availableUnits`
+- Writes `orders` + `orderItems`
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "order": {},
+    "items": []
+  },
+  "message": ""
+}
 ```
 
-### Login (store accessToken)
-```dart
-final res = await api.postJson('/auth/login', {
-  'email': 'user1@cuzzycrew.com',
-  'password': 'Password123!',
-  'sessionToken': api.sessionToken,
-});
+#### `GET /api/orders`
+Lists orders for the authenticated user.
 
-api.accessToken = (res['data']['tokens']['accessToken'] as String);
+Auth:
+- Required
+
+Query params:
+- `limit` (1-50)
+- `cursor` (order id)
+
+#### `GET /api/orders/:orderId`
+Gets a single order for the authenticated user.
+
+Auth:
+- Required
+
+#### `POST /api/orders/:orderId/cancel`
+Cancels an order if its status is `PENDING_PAYMENT`.
+
+Auth:
+- Required
+
+### Payments (Stripe)
+
+- `POST /api/payments/intent`
+- `POST /api/payments/webhook`
+- `GET /api/payments/:orderId/status`
+
+Note: These endpoints exist in the codebase; the project may use a template or stubbed Stripe flow depending on the current implementation.
+
+### Checkout session + webhook (template)
+
+- `POST /api/create-checkout-session`
+- `POST /api/webhook`
+
+Note: These are mounted under `/api` if `checkoutSessionRoutes` and `stripeWebhookRoutes` are present.
+
+### Admin (ADMIN role)
+
+#### Categories
+- `POST /api/admin/categories`
+- `PATCH /api/admin/categories/:id`
+- `DELETE /api/admin/categories/:id`
+
+#### Products
+- `POST /api/admin/products`
+- `PATCH /api/admin/products/:id`
+- `DELETE /api/admin/products/:id`
+
+#### Variants / stock
+- `POST /api/admin/variants`
+- `PATCH /api/admin/variants/:id/stock`
+
+#### Site content
+- `PUT /api/admin/website-banner`
+
+## Postman testing (quick)
+
+### Base
+- Base URL: `http://localhost:4000/api`
+- Headers:
+  - JSON: `Content-Type: application/json`
+  - Auth (when required): `Authorization: Bearer <token>`
+
+
+
+## Deployment (Vercel)
+
+### Required env vars on Vercel
+Set these for the Vercel project (Production recommended):
+
+- `NODE_ENV=production`
+- `CORS_ORIGIN=<your frontend URL>`
+- `JWT_ACCESS_SECRET` (min 20)
+- `JWT_REFRESH_SECRET` (min 20)
+- `STRIPE_SECRET_KEY` (min 10)
+- `STRIPE_WEBHOOK_SECRET` (min 10)
+- `FIREBASE_PROJECT_ID=<project id>`
+- `FIREBASE_SERVICE_ACCOUNT_JSON=<full JSON string>`
+
+Do not set `FIREBASE_SERVICE_ACCOUNT_PATH` on Vercel.
+
+### Debugging
+To view production logs:
+
+```bash
+vercel logs --prod
 ```
-
-### Main page: fetch categories + products
-```dart
-final cats = await api.getJson('/categories');
-final products = await api.getJson('/products?limit=20&sort=newest');
-```
-
-### Guest cart: add item
-```dart
-final cart = await api.postJson('/cart/items', {
-  'variantId': 'var_hoodie_black_m_001',
-  'quantity': 2,
-}, guest: true);
-```
-
-### Create order (requires auth + Idempotency-Key)
-```dart
-final order = await api.postJson(
-  '/orders',
-  {'shippingAddressId': 'shipaddr_test_1'},
-  auth: true,
-  extraHeaders: {'Idempotency-Key': 'idem_${DateTime.now().millisecondsSinceEpoch}'},
-);
-```
-
-## Notes
-- For Android emulator calling your PC localhost, use `http://10.0.2.2:4000/api`.
-- For iOS simulator use `http://localhost:4000/api`.
 

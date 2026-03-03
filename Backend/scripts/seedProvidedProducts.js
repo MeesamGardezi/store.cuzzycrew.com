@@ -1,0 +1,302 @@
+const { getConfig } = require('../src/config/env');
+const { initFirebase, getDb } = require('../src/config/firebase');
+
+const PRODUCTS_PAYLOAD = {
+  products: [
+    {
+      id: 'prod_hwd_bone_01',
+      category: 'hoodies',
+      dateAdded: '2026-02-20T10:00:00Z',
+      name: 'HEAVYWEIGHT HOODIE / BONE',
+      shortName: 'Cuzzy Heavy Hoodie',
+      price: 120.0,
+      currency: 'USD',
+      unit: 'piece',
+      availableUnits: 48,
+      thumbnail:
+        'https://www.scnzcrew.com/cdn/shop/files/rn-image_picker_lib_temp_d07f1c7e-be3c-4abc-8d2e-d9b0606d6f94.jpg?v=1769614270',
+      images: [
+        'https://www.scnzcrew.com/cdn/shop/files/IMG_0184_720x.jpg?v=1769614270',
+        'https://www.scnzcrew.com/cdn/shop/files/IMG_0186_720x.jpg?v=1769614270',
+        'https://www.scnzcrew.com/cdn/shop/files/IMG_0183_720x.jpg?v=17696142700',
+      ],
+      sizeGuideImage:
+        'https://marketplace.canva.com/EAF5X3890eU/1/0/400w/canva-grey-modern-minimalist-clothing-size-chart-guide-instagram-post-mz12XcWqRkA.jpg',
+      sizes: ['XS', 'S', 'M', 'L', 'XL'],
+      story:
+        "Crafted with premium heavyweight cotton, this Bone Hoodie is the ultimate comfort piece. Designed for those who appreciate quality and timeless style, it features our signature Cuzzy branding with a modern twist. Perfect for layering or wearing solo.",
+      colorVariants: [
+        {
+          colorName: 'Bone',
+          colorHex: '#D9D2C5',
+          image: 'https://www.scnzcrew.com/cdn/shop/files/IMG_0184_720x.jpg?v=1769614270',
+        },
+        {
+          colorName: 'Onyx',
+          colorHex: '#2B2B2B',
+          image: 'https://www.scnzcrew.com/cdn/shop/files/IMG_0186_720x.jpg?v=1769614270',
+        },
+      ],
+    },
+    {
+      id: 'prod_tee_onyx_02',
+      category: 'tees',
+      dateAdded: '2026-02-15T10:00:00Z',
+      name: 'CUZZY ARCHIVE TEE / ONYX',
+      shortName: 'Archive Tee',
+      price: 45.0,
+      currency: 'USD',
+      unit: 'piece',
+      availableUnits: 85,
+      thumbnail: 'http://images.unsplash.com/photo-1521572163474-6864f9cf17ab',
+      images: [
+        'http://images.unsplash.com/photo-1521572163474-6864f9cf17ab',
+        'http://images.unsplash.com/photo-1503342217505-b0a15ec3261c',
+        'http://images.unsplash.com/photo-1583743814966-8936f37f4a3c',
+      ],
+      sizeGuideImage: 'http://images.unsplash.com/photo-1583743814966-8936f37f4a3c',
+      sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+      story:
+        "Our Archive Tee pays homage to Cuzzy Crew's roots. This classic onyx piece features an iconic design that's designed to fade beautifully over time, creating a unique vintage look with every wear.",
+      colorVariants: [
+        {
+          colorName: 'Onyx',
+          colorHex: '#111111',
+          image: 'http://images.unsplash.com/photo-1521572163474-6864f9cf17ab',
+        },
+        {
+          colorName: 'Slate',
+          colorHex: '#6B7280',
+          image: 'http://images.unsplash.com/photo-1503342217505-b0a15ec3261c',
+        },
+      ],
+    },
+    {
+      id: 'prod_cap_slate_03',
+      category: 'caps',
+      dateAdded: '2026-02-10T10:00:00Z',
+      name: 'CREW ESSENTIAL CAP / SLATE',
+      shortName: 'Essential Cap',
+      price: 35.0,
+      currency: 'USD',
+      unit: 'piece',
+      availableUnits: 0,
+      thumbnail: 'https://furorjeans.com/cdn/shop/files/0N9A1129FAC5-053_960x_crop_center.jpg?v=1758518987',
+      images: [
+        'https://furorjeans.com/cdn/shop/files/0N9A1131FAC5-053_960x_crop_center.jpg?v=1758518987',
+        'https://furorjeans.com/cdn/shop/files/0N9A5467FAC5-054_960x_crop_center.jpg?v=1759835923',
+        'https://furorjeans.com/cdn/shop/files/0N9A5465FAC5-054_960x_crop_center.jpg?v=1759835923',
+        'https://furorjeans.com/cdn/shop/files/0N9A1136FAC5-053_960x_crop_center.jpg?v=1758518987',
+        'https://furorjeans.com/cdn/shop/files/0N9A5473FAC5-054_960x_crop_center.jpg?v=1759835923',
+      ],
+      sizeGuideImage: 'http://images.unsplash.com/photo-1556905055-8f358a7a47b2',
+      story:
+        "Keep the sun out of your eyes while repping the crew. This essential cap is your go-to accessory for any occasion, featuring breathable material and a classic silhouette that pairs with everything.",
+      sizes: ['ONE SIZE'],
+      colorVariants: [
+        {
+          colorName: 'Black',
+          colorHex: '#000000',
+          image: 'https://furorjeans.com/cdn/shop/files/0N9A5467FAC5-054_960x_crop_center.jpg?v=1759835923',
+        },
+        {
+          colorName: 'White',
+          colorHex: '#FFFFFF',
+          image: 'https://furorjeans.com/cdn/shop/files/0N9A1129FAC5-053_960x_crop_center.jpg?v=1758518987',
+        },
+      ],
+    },
+    {
+      id: 'prod_jogger_sand_04',
+      category: 'bottoms',
+      dateAdded: '2026-01-25T10:00:00Z',
+      name: 'RELAXED CARGO JOGGER / SAND',
+      shortName: 'Relaxed Jogger',
+      price: 95.0,
+      currency: 'USD',
+      unit: 'piece',
+      availableUnits: 38,
+      thumbnail: 'http://images.unsplash.com/photo-1602293589930-45aad59ba3ab',
+      images: [
+        'http://images.unsplash.com/photo-1602293589930-45aad59ba3ab',
+        'http://images.unsplash.com/photo-1582552938357-32b906df40cb',
+        'http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2',
+      ],
+      sizeGuideImage: 'http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2',
+      story:
+        "Engineered for maximum comfort and style, these relaxed cargo joggers combine functionality with fashion. The utilitarian pockets and tapered ankle make them perfect for the modern lifestyle.",
+      sizes: ['28', '30', '32', '34', '36'],
+      colorVariants: [
+        {
+          colorName: 'Sand',
+          colorHex: '#C4A36B',
+          image: 'http://images.unsplash.com/photo-1602293589930-45aad59ba3ab',
+        },
+        {
+          colorName: 'Khaki',
+          colorHex: '#9F8B65',
+          image: 'http://images.unsplash.com/photo-1582552938357-32b906df40cb',
+        },
+      ],
+    },
+    {
+      id: 'prod_shoe_black_05',
+      category: 'shoes',
+      dateAdded: '2026-02-05T10:00:00Z',
+      name: 'TRACK RUNNER / BLACK',
+      shortName: 'Track Runner',
+      price: 110.0,
+      currency: 'USD',
+      unit: 'pair',
+      availableUnits: 50,
+      thumbnail: 'http://images.unsplash.com/photo-1598300054620-93a1b2a4f2fa',
+      images: [
+        'http://images.unsplash.com/photo-1598300054620-93a1b2a4f2fa',
+        'http://images.unsplash.com/photo-1519741491394-3d166528f1c5',
+        'http://images.unsplash.com/photo-1526170375885-4d8ecf77b99f',
+      ],
+      sizeGuideImage: 'http://images.unsplash.com/photo-1526170375885-4d8ecf77b99f',
+      story:
+        'Step into the future with our Track Runner shoes. Designed for performance and style, these kicks feature a responsive sole and sleek design that works for both running and daily wear.',
+      sizes: ['7', '8', '9', '10', '11', '12'],
+      colorVariants: [
+        {
+          colorName: 'Black',
+          colorHex: '#000000',
+          image: 'http://images.unsplash.com/photo-1598300054620-93a1b2a4f2fa',
+        },
+        {
+          colorName: 'White',
+          colorHex: '#FFFFFF',
+          image: 'http://images.unsplash.com/photo-1519741491394-3d166528f1c5',
+        },
+      ],
+    },
+    {
+      id: 'prod_sweat_midnight_06',
+      category: 'sweatshirts',
+      dateAdded: '2026-02-18T10:00:00Z',
+      name: 'MIDNIGHT CREWNECK',
+      shortName: 'Midnight Sweatshirt',
+      price: 85.0,
+      currency: 'USD',
+      unit: 'piece',
+      availableUnits: 60,
+      thumbnail: 'http://images.unsplash.com/photo-1613760586666-e8680edcdf98',
+      images: [
+        'http://images.unsplash.com/photo-1613760586666-e8680edcdf98',
+        'http://images.unsplash.com/photo-1621803725064-7b2da7d89f31',
+        'http://images.unsplash.com/photo-1602810318383-e386cc2a3ccf',
+      ],
+      story:
+        "Embrace the night with our Midnight Crewneck. This versatile sweatshirt is your companion for cozy evenings and casual hangouts. The premium fabric ensures it stays comfortable for years to come.",
+      sizeGuideImage: 'http://images.unsplash.com/photo-1621803725064-7b2da7d89f31',
+      sizes: ['S', 'M', 'L', 'XL'],
+      colorVariants: [
+        {
+          colorName: 'Midnight',
+          colorHex: '#1A1A2E',
+          image: 'http://images.unsplash.com/photo-1613760586666-e8680edcdf98',
+        },
+        {
+          colorName: 'Charcoal',
+          colorHex: '#333333',
+          image: 'http://images.unsplash.com/photo-1621803725064-7b2da7d89f31',
+        },
+      ],
+    },
+    {
+      id: 'prod_short_olive_07',
+      category: 'shorts',
+      dateAdded: '2026-02-12T10:00:00Z',
+      name: 'UTILITY SHORTS / OLIVE',
+      shortName: 'Olive Shorts',
+      price: 55.0,
+      currency: 'USD',
+      unit: 'piece',
+      availableUnits: 44,
+      thumbnail: 'http://images.unsplash.com/photo-1589927986089-3581237880b1',
+      images: [
+        'http://images.unsplash.com/photo-1589927986089-3581237880b1',
+        'http://images.unsplash.com/photo-1523381294911-8d3cead13475',
+        'http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2',
+      ],
+      story:
+        "Utility meets style in these Olive Shorts. Designed for versatility, they feature multiple pockets and a comfortable fit that's perfect for outdoor adventures or casual Fridays.",
+      sizeGuideImage: 'http://images.unsplash.com/photo-1593032465171-8d3b56f3c7a2',
+      sizes: ['S', 'M', 'L', 'XL'],
+      colorVariants: [
+        {
+          colorName: 'Olive',
+          colorHex: '#708238',
+          image: 'http://images.unsplash.com/photo-1589927986089-3581237880b1',
+        },
+        {
+          colorName: 'Beige',
+          colorHex: '#D6C3A5',
+          image: 'http://images.unsplash.com/photo-1523381294911-8d3cead13475',
+        },
+      ],
+    },
+  ],
+};
+
+function toCents(price) {
+  const n = Number(price);
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(n * 100);
+}
+
+function chunkArray(arr, chunkSize) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += chunkSize) out.push(arr.slice(i, i + chunkSize));
+  return out;
+}
+
+async function run() {
+  const config = getConfig();
+  initFirebase(config);
+
+  const db = getDb();
+  const nowIso = new Date().toISOString();
+
+  const products = Array.isArray(PRODUCTS_PAYLOAD.products) ? PRODUCTS_PAYLOAD.products : [];
+
+  const ops = products.map((p) => {
+    const id = String(p.id);
+
+    const data = {
+      ...p,
+      priceMin: toCents(p.price),
+      priceMax: toCents(p.price),
+      deletedAt: null,
+      createdAt: String(p.dateAdded || nowIso),
+      updatedAt: nowIso,
+    };
+
+    return { ref: db.collection('products').doc(id), data };
+  });
+
+  const chunks = chunkArray(ops, 450);
+  for (const chunk of chunks) {
+    const batch = db.batch();
+    chunk.forEach((op) => batch.set(op.ref, op.data, { merge: true }));
+    await batch.commit();
+  }
+
+  process.stdout.write(
+    JSON.stringify(
+      {
+        ok: true,
+        products: products.length,
+      },
+      null,
+      2
+    ) + '\n'
+  );
+}
+
+run().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
