@@ -5,7 +5,7 @@ function orderItemsCol() {
 }
 
 async function listByOrderId(orderId) {
-  const snap = await orderItemsCol().where('orderId', '==', orderId).orderBy('createdAt', 'asc').get();
+  const snap = await orderItemsCol().where('orderId', '==', orderId).get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 

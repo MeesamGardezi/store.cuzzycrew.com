@@ -2,7 +2,6 @@ const { getDb } = require('../config/firebase');
 const { ApiError } = require('../utils/apiError');
 const { newId, nowIso, toNumber } = require('../utils/firestore');
 
-const cartRepository = require('../repositories/cartRepository');
 const orderRepository = require('../repositories/orderRepository');
 const { orderItemsCol, listByOrderId } = require('../repositories/orderItemRepository');
 
@@ -12,100 +11,123 @@ function generateOrderNumber() {
   return `CC-${t}-${r}`;
 }
 
-async function quoteFromUserCart(userId) {
-  const cart = await cartRepository.getByUserId(userId);
-  if (!cart) throw new ApiError({ status: 422, code: 'CART_EMPTY', message: 'Cart is empty', details: [] });
-  return { cart };
+function toMinorAmount(amount) {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return null;
+  return Math.round(n * 100);
 }
 
-async function createOrder({ userId, idempotencyKey, shippingAddressId }) {
-  const db = getDb();
-  const { cart } = await quoteFromUserCart(userId);
+function getProductUnitPriceMinor(product) {
+  const fromPrice = toMinorAmount(product.price);
+  if (fromPrice != null) return fromPrice;
 
-  const orderId = newId();
+  const priceMin = Number(product.priceMin);
+  if (Number.isFinite(priceMin)) return Math.round(priceMin);
+
+  return null;
+}
+
+async function createOrder({ userId, idempotencyKey, items, currency, shippingAddress }) {
+  const db = getDb();
   const createdAt = nowIso();
+  const orderId = newId();
 
   const orderNumber = generateOrderNumber();
 
-  const idempotencyRef = orderRepository.uniqueIdempotencyDoc(userId, idempotencyKey);
+  const idemKey = idempotencyKey ? String(idempotencyKey) : null;
+  const idempotencyRef = idemKey ? orderRepository.uniqueIdempotencyDoc(userId, idemKey) : null;
   const orderNumberRef = orderRepository.uniqueOrderNumberDoc(orderNumber);
 
-  await db.runTransaction(async (tx) => {
-    const idemSnap = await tx.get(idempotencyRef);
-    if (idemSnap.exists) {
-      throw new ApiError({ status: 409, code: 'IDEMPOTENCY_CONFLICT', message: 'Duplicate idempotency key', details: [] });
-    }
-
-    const orderNumberSnap = await tx.get(orderNumberRef);
-    if (orderNumberSnap.exists) {
-      throw new ApiError({ status: 409, code: 'ORDER_NUMBER_CONFLICT', message: 'Order number conflict', details: [] });
-    }
-
-    const cartRef = db.collection('carts').doc(cart.id);
-    const cartSnap = await tx.get(cartRef);
-    if (!cartSnap.exists) {
-      throw new ApiError({ status: 422, code: 'CART_EMPTY', message: 'Cart is empty', details: [] });
-    }
-
-    const cartData = cartSnap.data();
-    if (cartData.status !== 'ACTIVE') {
-      throw new ApiError({ status: 422, code: 'CART_EMPTY', message: 'Cart is empty', details: [] });
-    }
-
-    const cartItemsQuery = db.collection('cartItems').where('cartId', '==', cart.id);
-    const cartItemsSnap = await tx.get(cartItemsQuery);
-    if (cartItemsSnap.empty) {
-      throw new ApiError({ status: 422, code: 'CART_EMPTY', message: 'Cart is empty', details: [] });
-    }
-
-    const cartItems = cartItemsSnap.docs.map((d) => ({ id: d.id, ...d.data(), ref: d.ref }));
-
-    const variantDocs = [];
-    const productDocsById = new Map();
-
-    for (const ci of cartItems) {
-      const variantRef = db.collection('productVariants').doc(ci.variantId);
-      const variantSnap = await tx.get(variantRef);
-      if (!variantSnap.exists) {
-        throw new ApiError({ status: 409, code: 'STOCK_CONFLICT', message: 'Variant not found', details: [] });
-      }
-      const variant = { id: variantSnap.id, ...variantSnap.data() };
-
-      const stock = toNumber(variant.stock, 0);
-      if (stock < toNumber(ci.quantity)) {
-        throw new ApiError({ status: 409, code: 'STOCK_CONFLICT', message: 'Insufficient stock', details: [] });
+  try {
+    await db.runTransaction(async (tx) => {
+      if (idempotencyRef) {
+        const idemSnap = await tx.get(idempotencyRef);
+        if (idemSnap.exists) {
+          throw new ApiError({ status: 409, code: 'IDEMPOTENCY_CONFLICT', message: 'Duplicate idempotency key', details: [] });
+        }
       }
 
-      variantDocs.push({ ci, variant, variantRef });
-
-      if (variant.productId && !productDocsById.has(variant.productId)) {
-        const productRef = db.collection('products').doc(variant.productId);
-        const productSnap = await tx.get(productRef);
-        if (productSnap.exists) productDocsById.set(variant.productId, { id: productSnap.id, ...productSnap.data() });
+      const orderNumberSnap = await tx.get(orderNumberRef);
+      if (orderNumberSnap.exists) {
+        throw new ApiError({ status: 409, code: 'ORDER_NUMBER_CONFLICT', message: 'Order number conflict', details: [] });
       }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new ApiError({ status: 422, code: 'EMPTY_ITEMS', message: 'Order items required', details: [] });
     }
 
-    for (const v of variantDocs) {
-      const stock = toNumber(v.variant.stock, 0);
-      const newStock = stock - toNumber(v.ci.quantity);
-      tx.set(v.variantRef, { stock: newStock, updatedAt: createdAt }, { merge: true });
+    const orderCurrency = String(currency || 'USD').toUpperCase();
+
+    const computedItems = [];
+
+    for (const it of items) {
+      const productId = String(it.productId || '');
+      const qty = toNumber(it.quantity, 0);
+      if (!productId) {
+        throw new ApiError({ status: 422, code: 'INVALID_ITEM', message: 'Invalid item productId', details: [] });
+      }
+      if (qty < 1) {
+        throw new ApiError({ status: 422, code: 'INVALID_ITEM', message: 'Invalid item quantity', details: [{ productId }] });
+      }
+
+      const productRef = db.collection('products').doc(productId);
+      const productSnap = await tx.get(productRef);
+      if (!productSnap.exists) {
+        throw new ApiError({ status: 404, code: 'PRODUCT_NOT_FOUND', message: 'Product not found', details: [{ productId }] });
+      }
+
+      const product = { id: productSnap.id, ...productSnap.data() };
+      if (product.deletedAt) {
+        throw new ApiError({ status: 404, code: 'PRODUCT_NOT_FOUND', message: 'Product not found', details: [{ productId }] });
+      }
+
+      const unitPrice = getProductUnitPriceMinor(product);
+      if (unitPrice == null) {
+        throw new ApiError({ status: 422, code: 'INVALID_PRODUCT_PRICE', message: 'Invalid product price', details: [{ productId }] });
+      }
+
+      const available = toNumber(product.availableUnits, 0);
+      if (available < qty) {
+        throw new ApiError({ status: 409, code: 'OUT_OF_STOCK', message: 'Insufficient stock', details: [{ productId }] });
+      }
+
+      tx.set(productRef, { availableUnits: available - qty, updatedAt: createdAt }, { merge: true });
+
+      computedItems.push({
+        productId,
+        quantity: qty,
+        selectedSize: String(it.selectedSize || ''),
+        selectedColor: String(it.selectedColor || ''),
+        unitPrice,
+        currency: orderCurrency,
+        snapshot: {
+          productName: product.name || null,
+          thumbnail: product.thumbnail || null,
+        },
+      });
     }
+
+    const subtotal = computedItems.reduce((sum, i) => sum + toNumber(i.unitPrice) * toNumber(i.quantity), 0);
+    const discountTotal = 0;
+    const total = Math.max(0, subtotal - discountTotal);
 
     const orderRef = orderRepository.ordersCol().doc(orderId);
 
-    tx.create(idempotencyRef, { orderId, userId, idempotencyKey, createdAt });
+    if (idempotencyRef) {
+      tx.create(idempotencyRef, { orderId, userId: userId || null, idempotencyKey: idemKey, createdAt });
+    }
     tx.create(orderNumberRef, { orderId, orderNumber, createdAt });
 
     tx.create(orderRef, {
-      userId,
+      userId: userId || null,
       orderNumber,
-      status: 'PENDING',
-      currency: cartData.currency,
-      subtotal: cartData.subtotal,
-      discountTotal: cartData.discountTotal,
-      total: cartData.total,
-      couponCode: cartData.couponCode || null,
-      shippingAddressId: shippingAddressId || null,
+      status: 'PENDING_PAYMENT',
+      currency: orderCurrency,
+      subtotal,
+      discountTotal,
+      total,
+      couponCode: null,
+      shippingAddress: shippingAddress || null,
       stripePaymentIntentId: null,
       createdAt,
       updatedAt: createdAt,
@@ -113,36 +135,35 @@ async function createOrder({ userId, idempotencyKey, shippingAddressId }) {
       deletedAt: null,
     });
 
-    for (const v of variantDocs) {
-      const product = v.variant.productId ? productDocsById.get(v.variant.productId) : null;
-
-      tx.create(orderItemsCol().doc(newId()), {
-        orderId,
-        productId: v.ci.productId,
-        variantId: v.ci.variantId,
-        quantity: v.ci.quantity,
-        unitPrice: v.ci.unitPrice,
-        currency: v.ci.currency,
-        snapshot: {
-          productName: v.ci.snapshot?.productName || product?.name || null,
-          variantLabel: v.ci.snapshot?.variantLabel || v.variant.label || null,
-          unitPrice: v.ci.unitPrice,
-        },
-        createdAt,
-        updatedAt: createdAt,
-      });
-    }
-
-    for (const doc of cartItems) {
-      tx.delete(doc.ref);
-    }
-
-    tx.set(
-      cartRef,
-      { couponCode: null, subtotal: 0, discountTotal: 0, total: 0, updatedAt: createdAt },
-      { merge: true }
-    );
-  });
+      for (const ci of computedItems) {
+        tx.create(orderItemsCol().doc(newId()), {
+          orderId,
+          productId: ci.productId,
+          variantId: null,
+          quantity: ci.quantity,
+          unitPrice: ci.unitPrice,
+          currency: ci.currency,
+          selectedSize: ci.selectedSize,
+          selectedColor: ci.selectedColor,
+          snapshot: {
+            productName: ci.snapshot?.productName || null,
+            thumbnail: ci.snapshot?.thumbnail || null,
+            unitPrice: ci.unitPrice,
+          },
+          createdAt,
+          updatedAt: createdAt,
+        });
+      }
+    });
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    throw new ApiError({
+      status: 500,
+      code: 'ORDER_CREATE_FAILED',
+      message: e && e.message ? String(e.message) : 'Order create failed',
+      details: [],
+    });
+  }
 
   const order = await orderRepository.getById(orderId);
   const orderItems = await listByOrderId(orderId);
@@ -177,7 +198,7 @@ async function cancelOrder({ userId, orderId }) {
       throw new ApiError({ status: 403, code: 'FORBIDDEN', message: 'Forbidden', details: [] });
     }
 
-    if (order.status !== 'PENDING') {
+    if (order.status !== 'PENDING_PAYMENT') {
       throw new ApiError({ status: 422, code: 'CANNOT_CANCEL', message: 'Order cannot be canceled', details: [] });
     }
 

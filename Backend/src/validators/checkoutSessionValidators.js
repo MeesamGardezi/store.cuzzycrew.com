@@ -1,9 +1,6 @@
 const { z } = require('zod');
 
-const createOrderSchema = z.object({
-  headers: z.object({
-    'idempotency-key': z.string().min(8).max(200).optional(),
-  }).passthrough(),
+const createCheckoutSessionSchema = z.object({
   body: z.object({
     items: z
       .array(
@@ -24,11 +21,7 @@ const createOrderSchema = z.object({
       postalCode: z.string().min(1).max(30),
       country: z.string().min(1).max(2),
     }),
-  }).passthrough(),
+  }),
 });
 
-const orderIdSchema = z.object({
-  params: z.object({ orderId: z.string().min(1) }),
-});
-
-module.exports = { createOrderSchema, orderIdSchema };
+module.exports = { createCheckoutSessionSchema };

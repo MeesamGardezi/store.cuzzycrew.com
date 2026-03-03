@@ -9,7 +9,8 @@ function uniqueOrderNumberDoc(orderNumber) {
 }
 
 function uniqueIdempotencyDoc(userId, idempotencyKey) {
-  return getDb().collection('uniqueOrderIdempotencyKeys').doc(`${userId}_${idempotencyKey}`);
+  const uid = userId ? String(userId) : 'guest';
+  return getDb().collection('uniqueOrderIdempotencyKeys').doc(`${uid}_${idempotencyKey}`);
 }
 
 async function getById(orderId) {

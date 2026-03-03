@@ -4,12 +4,14 @@ const orderService = require('../services/orderService');
 
 const create = asyncHandler(async (req, res) => {
   const idempotencyKey = req.header('idempotency-key');
-  const { shippingAddressId } = req.validated.body;
+  const { items, currency, shippingAddress } = req.validated.body;
 
   const result = await orderService.createOrder({
-    userId: req.auth.userId,
+    userId: req.auth?.userId || null,
     idempotencyKey,
-    shippingAddressId,
+    items,
+    currency,
+    shippingAddress,
   });
 
   return sendSuccess(res, { data: result, message: '' });

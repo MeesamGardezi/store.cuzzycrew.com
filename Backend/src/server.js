@@ -37,6 +37,7 @@ async function createServer() {
   );
 
   app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+  app.use('/api/webhook', express.raw({ type: 'application/json' }));
   app.use(express.json({ limit: '1mb' }));
 
   app.use('/api', apiRouter);
