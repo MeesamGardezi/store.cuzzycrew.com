@@ -279,7 +279,9 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                           Row(
                             children: [
                               ElevatedButton(
-                                onPressed: () {     NavWrapperController.selectedIndex.value = 1;},
+                                onPressed: () {
+                                  NavWrapperController.selectedIndex.value = 1;
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryAccent,
                                   padding: const EdgeInsets.symmetric(
@@ -359,7 +361,12 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
               ),
               SizedBox(height: height * 0.01),
               Container(
-                padding: const EdgeInsets.only(left: 30, right: 30, top: 30, bottom: 30),
+                padding: const EdgeInsets.only(
+                  left: 30,
+                  right: 30,
+                  top: 30,
+                  bottom: 30,
+                ),
                 child: Column(
                   children: [
                     Container(
@@ -432,7 +439,12 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
               SizedBox(height: height * 0.0),
               Container(
                 width: width,
-                padding: const EdgeInsets.only(left: 30, right: 30, top: 0, bottom: 10),
+                padding: const EdgeInsets.only(
+                  left: 30,
+                  right: 30,
+                  top: 0,
+                  bottom: 10,
+                ),
                 child: Column(
                   children: [
                     Row(
@@ -446,12 +458,17 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        Text(
-                          'VIEW ALL',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: AppColors.primaryAccent,
-                            fontSize: width * 0.008,
-                            fontWeight: FontWeight.w700,
+                        GestureDetector(
+                          onTap: () => NavWrapperController.setSelectedIndex(1),
+                          child: Text(
+                            'VIEW ALL',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.primaryAccent,
+                              fontSize: width * 0.008,
+                              fontWeight: FontWeight.w700,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.primaryAccent,
+                            ),
                           ),
                         ),
                       ],

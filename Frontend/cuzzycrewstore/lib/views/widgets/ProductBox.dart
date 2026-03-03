@@ -1,5 +1,6 @@
 import 'package:cuzzycrewstore/model/productModel.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/productdetailpage/productDetailPage.dart';
 import 'package:flutter/material.dart';
 
@@ -112,8 +113,10 @@ class _ProductBoxState extends State<ProductBox> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        ProductDetailPage(product: widget.product),
+                                    builder:
+                                        (_) => ProductDetailPage(
+                                          product: widget.product,
+                                        ),
                                   ),
                                 );
                               },
@@ -167,7 +170,10 @@ class _ProductBoxState extends State<ProductBox> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '\$${widget.product.price.toStringAsFixed(2)}',
+                    formatPrice(
+                      widget.product.price,
+                      currencyCode: widget.product.currency,
+                    ),
                     style: textTheme.bodyMedium?.copyWith(
                       color: AppColors.primaryAccent,
                       fontSize: priceSize,

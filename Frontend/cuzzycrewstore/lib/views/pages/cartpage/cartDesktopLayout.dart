@@ -1,5 +1,6 @@
 import 'package:cuzzycrewstore/controller/cartController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/checkoutpage/checkoutPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -225,7 +226,10 @@ class _CartItemCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '\$${item.priceAtAddTime.toStringAsFixed(2)}',
+                formatPrice(
+                  item.priceAtAddTime,
+                  currencyCode: item.product.currency,
+                ),
                 style: textTheme.titleMedium?.copyWith(
                   color: AppColors.primaryAccent,
                   fontSize: 18 * scale,
@@ -461,7 +465,10 @@ class _OrderSummarySidebar extends StatelessWidget {
                     ),
                     SizedBox(width: 8 * scale),
                     Text(
-                      '\$${item.totalPrice.toStringAsFixed(2)}',
+                      formatPrice(
+                        item.totalPrice,
+                        currencyCode: item.product.currency,
+                      ),
                       style: textTheme.bodyMedium?.copyWith(
                         color: bodyColor,
                         fontSize: 13 * scale,
@@ -474,7 +481,7 @@ class _OrderSummarySidebar extends StatelessWidget {
               ],
             );
           }).toList(),
-   
+
           Container(
             height: 1,
             color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
@@ -492,7 +499,10 @@ class _OrderSummarySidebar extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$${controller.total.toStringAsFixed(2)}',
+                formatPrice(
+                  controller.total,
+                  currencyCode: controller.displayCurrency,
+                ),
                 style: textTheme.headlineSmall?.copyWith(
                   color: AppColors.primaryAccent,
                   fontSize: 18 * scale,
@@ -514,7 +524,7 @@ class _OrderSummarySidebar extends StatelessWidget {
             onPressed: onCheckout,
             child: Text(
               'PROCEED TO CHECKOUT',
-              style: textTheme.labelMedium?.copyWith(
+              style: textTheme.titleMedium?.copyWith(
                 color: AppColors.darkText,
                 fontWeight: FontWeight.w700,
                 fontSize: 9.5 * scale,

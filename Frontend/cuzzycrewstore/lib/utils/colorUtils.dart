@@ -87,6 +87,7 @@ class AppTheme {
 
   static ThemeData light() {
     final colorScheme = const ColorScheme.light(
+      
       primary: AppColors.primaryAccent,
       secondary: AppColors.secondaryAccent,
       surface: AppColors.lightSurface,
@@ -100,7 +101,7 @@ class AppTheme {
     final textTheme = _simpleTextTheme(brightness: Brightness.light);
 
     return ThemeData(
-      useMaterial3: true,
+      useMaterial3: false,
       fontFamily: GoogleFonts.syne().fontFamily,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.lightBackground,
@@ -131,7 +132,7 @@ class AppTheme {
     final textTheme = _simpleTextTheme(brightness: Brightness.dark);
 
     return ThemeData(
-      useMaterial3: true,
+      useMaterial3: false,
       fontFamily: GoogleFonts.syne().fontFamily,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkBackground,

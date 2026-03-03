@@ -54,7 +54,7 @@ class ProductModel {
             )
             .toList();
 
-    final thumbnail = json['thumbnail'] ?? '';
+    final thumbnail = (json['thumbnail'] as String?) ?? '';
     final parsedImages =
         (json['images'] as List<dynamic>? ?? <dynamic>[])
             .whereType<String>()
@@ -70,23 +70,30 @@ class ProductModel {
         }.toList();
 
     return ProductModel(
-      id: json['id'] ?? '',
-      category: json['category'] ?? 'uncategorized',
+      id: (json['id'] as String?) ?? '',
+      category: (json['category'] as String?) ?? 'uncategorized',
       dateAdded:
-          DateTime.tryParse(json['dateAdded'] ?? '') ??
+          DateTime.tryParse((json['dateAdded'] as String?) ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
-      name: json['name'] ?? '',
-      shortName: json['shortName'] ?? '',
+      name: (json['name'] as String?) ?? '',
+      shortName: (json['shortName'] as String?) ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      currency: json['currency'] ?? 'USD',
-      unit: json['unit'] ?? 'piece',
-      availableUnits: json['availableUnits'] ?? 0,
+      currency: (json['currency'] as String?) ?? 'USD',
+      unit: (json['unit'] as String?) ?? 'piece',
+      availableUnits: (json['availableUnits'] as int?) ?? 0,
       thumbnail: thumbnail,
       images: parsedImages.isNotEmpty ? parsedImages : fallbackImages,
-      sizeGuideImage: json['sizeGuideImage'] ?? '',
-      sizes: List<String>.from(json['sizes'] ?? <String>[]),
+      sizeGuideImage: (json['sizeGuideImage'] as String?) ?? '',
+      sizes:
+          json['sizes'] != null
+              ? List<String>.from(
+                (json['sizes'] as List<dynamic>).map(
+                  (x) => (x as String?) ?? '',
+                ),
+              )
+              : <String>[],
       story: json['story'] as String?,
-      launched: json['launched'] ?? true,
+      launched: (json['launched'] as bool?) ?? true,
       colorVariants: colorVariants,
     );
   }

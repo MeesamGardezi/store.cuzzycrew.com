@@ -37,16 +37,21 @@ class CategoryModel {
   final List<String> tags;
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) => CategoryModel(
-    id: json["id"],
-    name: json["name"],
-    slug: json["slug"],
-    thumbnail: json["thumbnail"],
-    launched: json["launched"],
-    description: json["description"],
-    itemCount: json["itemCount"],
-    featured: json["featured"],
-    sortOrder: json["sortOrder"],
-    tags: List<String>.from(json["tags"].map((x) => x)),
+    id: json["id"] as String? ?? '',
+    name: json["name"] as String? ?? '',
+    slug: json["slug"] as String? ?? '',
+    thumbnail: json["thumbnail"] as String? ?? '',
+    launched: json["launched"] as bool? ?? false,
+    description: json["description"] as String? ?? '',
+    itemCount: json["itemCount"] as int? ?? 0,
+    featured: json["featured"] as bool? ?? false,
+    sortOrder: json["sortOrder"] as int? ?? 999,
+    tags:
+        json["tags"] != null
+            ? List<String>.from(
+              (json["tags"] as List<dynamic>).map((x) => x.toString()),
+            )
+            : <String>[],
   );
 
   Map<String, dynamic> toJson() => {

@@ -1,3 +1,4 @@
+import 'package:cuzzycrewstore/api/ApiService.dart';
 import 'package:cuzzycrewstore/model/productModel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -74,45 +75,83 @@ class ShopController extends ChangeNotifier {
   Future<void> initialize() async {
     _isLoading = true;
     notifyListeners();
+    debugPrint('🔄 [ShopController] Initializing shop controller...');
 
+    // Try API first
     try {
-      String? data;
-      const List<String> assetKeys = <String>[
-        'assets/json/products.json',
-        'json/products.json',
-      ];
-
-      for (final key in assetKeys) {
-        try {
-          data = await rootBundle.loadString(key);
-          if (data.isNotEmpty) {
-            break;
-          }
-        } catch (_) {}
-      }
-
-      if (data == null || data.isEmpty) {
-        throw Exception(
-          'Unable to load products asset. Tried: ${assetKeys.join(', ')}',
-        );
-      }
-
+      debugPrint('🔄 [ShopController] Fetching products from API...');
+      final ApiService api = ApiService();
+      final res = await api.getProducts();
+      final items =
+          (res['data'] as Map<String, dynamic>?)?['products']
+              as List<dynamic>? ??
+          <dynamic>[];
       _allProducts =
-          productModelFromJson(
-            data,
-          ).where((product) => product.launched).toList();
-
-      _setupPriceBounds();
-      _applyInitialCategory();
-      _clampCurrentPage();
-    } catch (error) {
-      debugPrint('Error loading shop products: $error');
-      _allProducts = <ProductModel>[];
-      _setupPriceBounds();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+          items
+              .map(
+                (item) => ProductModel.fromJson(item as Map<String, dynamic>),
+              )
+              .where((product) => product.launched)
+              .toList();
+      if (_allProducts.isNotEmpty) {
+        debugPrint(
+          '✅ [ShopController] Successfully loaded ${_allProducts.length} products from API',
+        );
+        _setupPriceBounds();
+        _applyInitialCategory();
+        _clampCurrentPage();
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+      debugPrint(
+        '⚠️ [ShopController] No launched products from API, trying fallback...',
+      );
+    } catch (e) {
+      debugPrint(
+        '❌ [ShopController] API Product fetch failed, falling back to local JSON: $e',
+      );
     }
+
+    // Fallback to local JSON
+    String? data;
+    const List<String> assetKeys = <String>[
+      'assets/json/products.json',
+      'json/products.json',
+    ];
+
+    for (final key in assetKeys) {
+      try {
+        debugPrint('🔄 [ShopController] Trying to load local JSON from: $key');
+        data = await rootBundle.loadString(key);
+        if (data.isNotEmpty) {
+          debugPrint(
+            '✅ [ShopController] Successfully loaded local JSON from: $key',
+          );
+          break;
+        }
+      } catch (_) {}
+    }
+
+    if (data == null || data.isEmpty) {
+      throw Exception(
+        'Unable to load products asset. Tried: ${assetKeys.join(', ')}',
+      );
+    }
+
+    _allProducts =
+        productModelFromJson(
+          data,
+        ).where((product) => product.launched).toList();
+
+    debugPrint(
+      '✅ [ShopController] Loaded ${_allProducts.length} products from local JSON fallback',
+    );
+    _setupPriceBounds();
+    _applyInitialCategory();
+    _clampCurrentPage();
+    _isLoading = false;
+    notifyListeners();
   }
 
   void updateItemsPerPage(int nextValue) {

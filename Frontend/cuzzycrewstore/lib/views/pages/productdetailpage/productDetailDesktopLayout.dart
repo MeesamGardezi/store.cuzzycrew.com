@@ -1,5 +1,6 @@
 import 'package:cuzzycrewstore/controller/cartController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/cartpage/cartPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -47,16 +48,56 @@ class _ProductDetailDesktopLayoutState
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CartPage()),
+          Consumer<CartController>(
+            builder: (context, cartController, _) {
+              return Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CartPage()),
+                        );
+                      },
+                      icon: const Icon(Icons.shopping_cart_outlined, size: 28),
+                    ),
+                  ),
+                  if (cartController.itemCount > 0)
+                    Positioned(
+                      top: 4,
+                      right: 11,
+                      child: Container(
+                        width: 17,
+                        height: 17,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${cartController.itemCount}',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.labelSmall?.copyWith(
+                                color: AppColors.darkText,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 9 * scale,
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
-            icon: const Icon(Icons.shopping_cart_outlined),
           ),
-          IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
           SizedBox(width: 12 * scale),
         ],
       ),
@@ -163,7 +204,10 @@ class _ProductDetailDesktopLayoutState
                           Row(
                             children: [
                               Text(
-                                '\$${widget.product.price.toStringAsFixed(2)}',
+                                formatPrice(
+                                  widget.product.price,
+                                  currencyCode: widget.product.currency,
+                                ),
                                 style: Theme.of(
                                   context,
                                 ).textTheme.headlineSmall?.copyWith(
@@ -280,7 +324,13 @@ class _ProductDetailDesktopLayoutState
                                                             ? Icon(
                                                               Icons.check,
                                                               color:
-                                                                  Colors.white,
+                                                                  variant.colorHex
+                                                                              .toLowerCase() ==
+                                                                          '#000000'
+                                                                      ? Colors
+                                                                          .white
+                                                                      : Colors
+                                                                          .black,
                                                               size: 24 * scale,
                                                             )
                                                             : null,
@@ -400,7 +450,10 @@ class _ProductDetailDesktopLayoutState
                                                         .textTheme
                                                         .bodyMedium
                                                         ?.copyWith(
-                                                          fontSize: 15 * scale,
+                                                          fontSize:
+                                                              size != 'ONE SIZE'
+                                                                  ? 15 * scale
+                                                                  : 12 * scale,
                                                           fontWeight:
                                                               FontWeight.w600,
                                                           color:
@@ -457,6 +510,11 @@ class _ProductDetailDesktopLayoutState
                                           iconSize: 22 * scale,
                                           onPressed:
                                               controller.decrementQuantity,
+                                          color:
+                                              theme.brightness ==
+                                                      Brightness.dark
+                                                  ? AppColors.darkText
+                                                  : AppColors.lightText,
                                         ),
                                         SizedBox(
                                           width: 50 * scale,
@@ -477,6 +535,11 @@ class _ProductDetailDesktopLayoutState
                                           iconSize: 22 * scale,
                                           onPressed:
                                               controller.incrementQuantity,
+                                          color:
+                                              theme.brightness ==
+                                                      Brightness.dark
+                                                  ? AppColors.darkText
+                                                  : AppColors.lightText,
                                         ),
                                       ],
                                     ),
@@ -523,7 +586,9 @@ class _ProductDetailDesktopLayoutState
                             child: FilledButton(
                               style: FilledButton.styleFrom(
                                 backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
+                                    widget.product.availableUnits <= 0
+                                        ? AppColors.darkText
+                                        : Theme.of(context).colorScheme.primary,
                                 foregroundColor:
                                     Theme.of(context).colorScheme.onPrimary,
                                 textStyle: Theme.of(context)
@@ -536,43 +601,61 @@ class _ProductDetailDesktopLayoutState
                                   ),
                                 ),
                               ),
-                              onPressed: () {
-                                final productDetailController =
-                                    Provider.of<ProductDetailController>(
-                                      context,
-                                      listen: false,
-                                    );
-                                final cartController =
-                                    Provider.of<CartController>(
-                                      context,
-                                      listen: false,
-                                    );
+                              onPressed:
+                                  widget.product.availableUnits <= 0
+                                      ? null
+                                      : () {
+                                        final productDetailController =
+                                            Provider.of<
+                                              ProductDetailController
+                                            >(context, listen: false);
+                                        final cartController =
+                                            Provider.of<CartController>(
+                                              context,
+                                              listen: false,
+                                            );
 
-                                cartController.addToCart(
-                                  product: widget.product,
-                                  selectedColorHex:
-                                      productDetailController.selectedColorHex,
-                                  selectedSize:
-                                      productDetailController.selectedSize,
-                                  quantity: productDetailController.quantity,
-                                );
+                                        cartController.addToCart(
+                                          product: widget.product,
+                                          selectedColorHex:
+                                              productDetailController
+                                                  .selectedColorHex,
+                                          selectedSize:
+                                              productDetailController
+                                                  .selectedSize,
+                                          quantity:
+                                              productDetailController.quantity,
+                                        );
 
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '${widget.product.name} added to cart!',
-                                    ),
-                                    duration: const Duration(
-                                      milliseconds: 1500,
-                                    ),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              },
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              '${widget.product.name} added to cart!',
+                                            ),
+                                            duration: const Duration(
+                                              milliseconds: 1500,
+                                            ),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      },
                               child: Text(
-                                'Add to Cart',
-                                style: Theme.of(context).textTheme.labelLarge
-                                    ?.copyWith(fontSize: 16 * scale),
+                                widget.product.availableUnits <= 0
+                                    ? 'OUT OF STOCK'
+                                    : 'Add to Cart',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.labelLarge?.copyWith(
+                                  fontSize: 16 * scale,
+                                  color:
+                                      widget.product.availableUnits <= 0
+                                          ? (Brightness.dark == theme.brightness
+                                              ? AppColors.darkText
+                                              : AppColors.lightText)
+                                          : null,
+                                ),
                               ),
                             ),
                           ),

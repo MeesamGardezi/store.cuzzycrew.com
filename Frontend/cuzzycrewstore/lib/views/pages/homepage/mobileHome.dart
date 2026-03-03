@@ -10,6 +10,7 @@ import 'package:cuzzycrewstore/views/widgets/CategoryBox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:carousel_text/carousel_text.dart';
 
 class HomeMobileLayout extends StatefulWidget {
@@ -423,12 +424,17 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        Text(
-                          'VIEW ALL',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: AppColors.primaryAccent,
-                            fontSize: width * 0.024,
-                            fontWeight: FontWeight.w700,
+                        GestureDetector(
+                          onTap: () => NavWrapperController.setSelectedIndex(1),
+                          child: Text(
+                            'VIEW ALL',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.primaryAccent,
+                              fontSize: width * 0.024,
+                              fontWeight: FontWeight.w700,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.primaryAccent,
+                            ),
                           ),
                         ),
                       ],
@@ -620,7 +626,7 @@ class _VerticalProductCard extends StatelessWidget {
           ),
           SizedBox(height: width * 0.004),
           Text(
-            '\$${product.price.toStringAsFixed(2)}',
+            formatPrice(product.price, currencyCode: product.currency),
             style: textTheme.bodyMedium?.copyWith(
               color: AppColors.primaryAccent,
               fontSize: width * 0.032,

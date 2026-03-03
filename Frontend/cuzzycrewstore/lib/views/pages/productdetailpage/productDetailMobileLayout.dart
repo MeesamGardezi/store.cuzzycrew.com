@@ -1,5 +1,6 @@
 import 'package:cuzzycrewstore/controller/cartController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/cartpage/cartPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,7 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
     final size = MediaQuery.of(context).size;
     final width = size.width;
     final scale = (width / 375).clamp(0.85, 1.15);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -48,17 +50,62 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CartPage()),
+          Consumer<CartController>(
+            builder: (context, cartController, _) {
+              return Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12,top : 4),
+                    child:
+                      Center(
+                        child: IconButton(
+                          icon: const Icon(Icons.shopping_cart_outlined, size: 28),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const CartPage()),
+                            );
+                          },
+                        ),
+                      ),
+                    
+                  ),
+
+                  if (cartController.itemCount > 0)
+                    Positioned(
+                      top: 12,
+                      right: 13,
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${cartController.itemCount}',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color: AppColors.darkText,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 9 * scale,
+                                    height: 1,
+                                  ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
           ),
-          IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
-          SizedBox(width: 8 * scale),
         ],
       ),
       body: SingleChildScrollView(
@@ -75,13 +122,7 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                 height: 320 * scale,
                 child: Consumer<ProductDetailController>(
                   builder: (context, controller, _) {
-                    // Always show mainImage as first image
-                    final images = [
-                      controller.mainImage,
-                      ...controller.aggregatedImages.where(
-                        (img) => img != controller.mainImage,
-                      ),
-                    ];
+                    final images = controller.aggregatedImages;
                     if (images.isEmpty) {
                       return Container(
                         color:
@@ -120,12 +161,7 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
               // Thumbnail Indicators
               Consumer<ProductDetailController>(
                 builder: (context, controller, _) {
-                  final images = [
-                    controller.mainImage,
-                    ...controller.aggregatedImages.where(
-                      (img) => img != controller.mainImage,
-                    ),
-                  ];
+                  final images = controller.aggregatedImages;
                   if (images.length <= 1) return SizedBox.shrink();
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -188,7 +224,10 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                   Row(
                     children: [
                       Text(
-                        '\$${widget.product.price.toStringAsFixed(2)}',
+                        formatPrice(
+                          widget.product.price,
+                          currencyCode: widget.product.currency,
+                        ),
                         style: Theme.of(
                           context,
                         ).textTheme.headlineSmall?.copyWith(
@@ -289,7 +328,12 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                                         isSelected
                                             ? Icon(
                                               Icons.check,
-                                              color: Colors.white,
+                                              color:
+                                                  variant.colorHex
+                                                              .toLowerCase() ==
+                                                          '#000000'
+                                                      ? Colors.white
+                                                      : Colors.black,
                                               size: 20 * scale,
                                             )
                                             : null,
@@ -350,8 +394,11 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                                 return GestureDetector(
                                   onTap: () => controller.selectSize(size),
                                   child: Container(
-                                    width: 60 * scale,
-                                    height: 44 * scale,
+                                    width:
+                                        size != 'ONE SIZE'
+                                            ? 72 * scale
+                                            : 90 * scale,
+                                    height: 40 * scale,
                                     decoration: BoxDecoration(
                                       color:
                                           isSelected
@@ -379,15 +426,19 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                                         style: Theme.of(
                                           context,
                                         ).textTheme.bodyMedium?.copyWith(
-                                          fontSize: 14 * scale,
+                                          fontSize:
+                                              size != 'ONE SIZE'
+                                                  ? 14 * scale
+                                                  : 12 * scale,
                                           fontWeight: FontWeight.w600,
-                                          color: isSelected
-                                              ? Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimary
-                                              : Theme.of(
-                                                context,
-                                              ).colorScheme.onSurface,
+                                          color:
+                                              isSelected
+                                                  ? Theme.of(
+                                                    context,
+                                                  ).colorScheme.onPrimary
+                                                  : Theme.of(
+                                                    context,
+                                                  ).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -427,6 +478,10 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                               icon: const Icon(Icons.remove),
                               iconSize: 20 * scale,
                               onPressed: controller.decrementQuantity,
+                              color:
+                                  theme.brightness == Brightness.dark
+                                      ? AppColors.darkText
+                                      : AppColors.lightText,
                             ),
                             SizedBox(
                               width: 40 * scale,
@@ -446,6 +501,10 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                               icon: const Icon(Icons.add),
                               iconSize: 20 * scale,
                               onPressed: controller.incrementQuantity,
+                              color:
+                                  theme.brightness == Brightness.dark
+                                      ? AppColors.darkText
+                                      : AppColors.lightText,
                             ),
                           ],
                         ),
@@ -486,44 +545,61 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                 width: double.infinity,
                 height: 48 * scale,
                 child: FilledButton(
-                  onPressed: () {
-                    final productDetailController =
-                        Provider.of<ProductDetailController>(
-                          context,
-                          listen: false,
-                        );
-                    final cartController = Provider.of<CartController>(
-                      context,
-                      listen: false,
-                    );
+                  onPressed:
+                      widget.product.availableUnits <= 0
+                          ? null
+                          : () {
+                            final productDetailController =
+                                Provider.of<ProductDetailController>(
+                                  context,
+                                  listen: false,
+                                );
+                            final cartController = Provider.of<CartController>(
+                              context,
+                              listen: false,
+                            );
 
-                    cartController.addToCart(
-                      product: widget.product,
-                      selectedColorHex:
-                          productDetailController.selectedColorHex,
-                      selectedSize: productDetailController.selectedSize,
-                      quantity: productDetailController.quantity,
-                    );
+                            cartController.addToCart(
+                              product: widget.product,
+                              selectedColorHex:
+                                  productDetailController.selectedColorHex,
+                              selectedSize:
+                                  productDetailController.selectedSize,
+                              quantity: productDetailController.quantity,
+                            );
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${widget.product.name} added to cart!'),
-                        duration: const Duration(milliseconds: 1500),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${widget.product.name} added to cart!',
+                                ),
+                                duration: const Duration(milliseconds: 1500),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          },
                   style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor:
+                        widget.product.availableUnits <= 0
+                            ? AppColors.darkText
+                            : Theme.of(context).colorScheme.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8 * scale),
                     ),
                   ),
                   child: Text(
-                    'Add to Cart',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.labelLarge?.copyWith(fontSize: 15 * scale),
+                    widget.product.availableUnits <= 0
+                        ? 'OUT OF STOCK'
+                        : 'Add to Cart',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontSize: 15 * scale,
+                      color:
+                          widget.product.availableUnits <= 0
+                              ? (Brightness.dark == theme.brightness
+                                  ? AppColors.darkText
+                                  : AppColors.lightText)
+                              : null,
+                    ),
                   ),
                 ),
               ),

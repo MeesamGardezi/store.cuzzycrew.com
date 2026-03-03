@@ -73,26 +73,28 @@
       "price": 35.0,
       "currency": "USD",
       "unit": "piece",
-      "availableUnits": 72,
-      "thumbnail": "http://images.unsplash.com/photo-1521369909029-2afed882baee",
+      "availableUnits": 0,
+      "thumbnail": "https://furorjeans.com/cdn/shop/files/0N9A1129FAC5-053_960x_crop_center.jpg?v=1758518987",
       "images": [
-        "http://images.unsplash.com/photo-1521369909029-2afed882baee",
-        "http://images.unsplash.com/photo-1534215754734-18e55d13e346",
-        "http://images.unsplash.com/photo-1556905055-8f358a7a47b2"
+        "https://furorjeans.com/cdn/shop/files/0N9A1131FAC5-053_960x_crop_center.jpg?v=1758518987",
+        "https://furorjeans.com/cdn/shop/files/0N9A5467FAC5-054_960x_crop_center.jpg?v=1759835923",
+        "https://furorjeans.com/cdn/shop/files/0N9A5465FAC5-054_960x_crop_center.jpg?v=1759835923",
+        "https://furorjeans.com/cdn/shop/files/0N9A1136FAC5-053_960x_crop_center.jpg?v=1758518987",
+        "https://furorjeans.com/cdn/shop/files/0N9A5473FAC5-054_960x_crop_center.jpg?v=1759835923"
       ],
       "sizeGuideImage": "http://images.unsplash.com/photo-1556905055-8f358a7a47b2",
       "story": "Keep the sun out of your eyes while repping the crew. This essential cap is your go-to accessory for any occasion, featuring breathable material and a classic silhouette that pairs with everything.",
       "sizes": ["ONE SIZE"],
       "colorVariants": [
         {
-          "colorName": "Slate",
-          "colorHex": "#485468",
-          "image": "http://images.unsplash.com/photo-1521369909029-2afed882baee"
+          "colorName": "Black",
+          "colorHex": "#000000",
+          "image": "https://furorjeans.com/cdn/shop/files/0N9A5467FAC5-054_960x_crop_center.jpg?v=1759835923"
         },
         {
-          "colorName": "Navy",
-          "colorHex": "#1F2A44",
-          "image": "http://images.unsplash.com/photo-1534215754734-18e55d13e346"
+          "colorName": "White",
+          "colorHex": "#FFFFFF",
+          "image": "https://furorjeans.com/cdn/shop/files/0N9A1129FAC5-053_960x_crop_center.jpg?v=1758518987"
         }
       ]
     },

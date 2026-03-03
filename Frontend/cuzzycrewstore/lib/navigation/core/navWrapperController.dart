@@ -5,16 +5,12 @@ class NavWrapperController {
   static final ValueNotifier<String?> shopCategory = ValueNotifier<String?>(
     null,
   );
+  // default to light theme
   static final ValueNotifier<ThemeMode> themeMode = ValueNotifier<ThemeMode>(
-    ThemeMode.dark,
+    ThemeMode.light,
   );
 
-  static const List<String> navItems = [
-    'HOME',
-    'SHOP',
-    'CATEGORIES',
-    'TRACK ORDER',
-  ];
+  static const List<String> navItems = ['HOME', 'SHOP', 'ABOUT'];
 
   static const List<String> desktopItems = navItems;
 

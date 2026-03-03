@@ -34,34 +34,49 @@ class ProductDetailController extends ChangeNotifier {
     }
   }
 
-  List<String> get aggregatedImages {
-    final images = <String>{};
-
-    // Add product images first
-    images.addAll(product.images.where((img) => img.trim().isNotEmpty));
-
-    // Add color variant images
-    for (final variant in product.colorVariants) {
-      if (variant.image.trim().isNotEmpty) {
-        images.add(variant.image);
-      }
-    }
-
-    return images.toList();
-  }
-
+  /// Gets the main image for the selected color
   String get mainImage {
     try {
       final colorImage =
           product.colorVariants
               .firstWhere((v) => v.colorHex.toLowerCase() == _selectedColorHex)
               .image;
-      if (colorImage.isNotEmpty) {
+      if (colorImage.trim().isNotEmpty) {
         return colorImage;
       }
     } catch (_) {}
-
     return product.primaryImage;
+  }
+
+  /// Gets all images for the gallery, with selected color image first
+  List<String> get aggregatedImages {
+    final images = <String>[];
+    final seen = <String>{};
+
+    // Add the selected color's image first
+    final colorImage = mainImage;
+    if (colorImage.trim().isNotEmpty) {
+      images.add(colorImage);
+      seen.add(colorImage);
+    }
+
+    // Add other product images (excluding the main/color image)
+    for (final img in product.images) {
+      if (img.trim().isNotEmpty && !seen.contains(img)) {
+        images.add(img);
+        seen.add(img);
+      }
+    }
+
+    // Add other color variant images (excluding the selected one and already added)
+    for (final variant in product.colorVariants) {
+      if (variant.image.trim().isNotEmpty && !seen.contains(variant.image)) {
+        images.add(variant.image);
+        seen.add(variant.image);
+      }
+    }
+
+    return images;
   }
 
   void selectColor(String hex) {

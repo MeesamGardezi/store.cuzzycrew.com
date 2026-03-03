@@ -1,5 +1,6 @@
 import 'package:cuzzycrewstore/model/productModel.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/productdetailpage/productDetailPage.dart';
 import 'package:flutter/material.dart';
 
@@ -133,7 +134,10 @@ class _ShopProductCardState extends State<ShopProductCard> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '\$${widget.product.price.toStringAsFixed(2)}',
+                    formatPrice(
+                      widget.product.price,
+                      currencyCode: widget.product.currency,
+                    ),
                     style: textTheme.bodySmall?.copyWith(
                       color: AppColors.primaryAccent,
                       fontWeight: FontWeight.w700,

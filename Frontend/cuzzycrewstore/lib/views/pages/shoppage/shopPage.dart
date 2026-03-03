@@ -1,5 +1,6 @@
 import 'package:cuzzycrewstore/controller/shopController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/productdetailpage/productDetailPage.dart';
 import 'package:cuzzycrewstore/views/widgets/shopProductCard.dart';
 import 'package:flutter/material.dart';
@@ -675,10 +676,13 @@ class _MobileFilterSidebarState extends State<_MobileFilterSidebar> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 _MetaText(
-                                  '\$${_selectedMinPrice.toStringAsFixed(0)}',
+                                  formatPrice(
+                                    _selectedMinPrice,
+                                    decimalDigits: 0,
+                                  ),
                                 ),
                                 _MetaText(
-                                  '\$${_selectedMaxPrice.toStringAsFixed(0)}+',
+                                  '${formatPrice(_selectedMaxPrice, decimalDigits: 0)}+',
                                 ),
                               ],
                             ),
@@ -949,8 +953,12 @@ class _ShopSidebar extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _MetaText('\$${controller.selectedMinPrice.toStringAsFixed(0)}'),
-              _MetaText('\$${controller.selectedMaxPrice.toStringAsFixed(0)}+'),
+              _MetaText(
+                formatPrice(controller.selectedMinPrice, decimalDigits: 0),
+              ),
+              _MetaText(
+                '${formatPrice(controller.selectedMaxPrice, decimalDigits: 0)}+',
+              ),
             ],
           ),
         ],

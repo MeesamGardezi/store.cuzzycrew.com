@@ -1,7 +1,7 @@
+import 'package:cuzzycrewstore/api/ApiService.dart';
 import 'package:cuzzycrewstore/model/categoryModel.dart';
 import 'package:cuzzycrewstore/model/productModel.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class Homecontroller {
   final ValueNotifier<bool> isLoading = ValueNotifier<bool>(false);
@@ -18,32 +18,33 @@ class Homecontroller {
 
   void fetchCategories(BuildContext context) async {
     isLoading.value = true;
+    debugPrint('🔄 [HomeController] Fetching categories...');
+
     try {
-      String? data;
-      final List<String> assetKeys = [
-        'assets/json/categories.json',
-        'json/categories.json',
-      ];
-
-      for (final key in assetKeys) {
-        try {
-          data = await rootBundle.loadString(key);
-          if (data.isNotEmpty) {
-            break;
-          }
-        } catch (_) {}
-      }
-
-      if (data == null || data.isEmpty) {
-        throw Exception(
-          'Unable to load categories asset. Tried: ${assetKeys.join(', ')}',
+      final res = await ApiService().getCategories();
+      final items =
+          (res['data'] as Map<String, dynamic>?)?['categories']
+              as List<dynamic>? ??
+          <dynamic>[];
+      final remote =
+          items
+              .map(
+                (item) => CategoryModel.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+      if (remote.isNotEmpty) {
+        categories.value = remote;
+        debugPrint(
+          '✅ [HomeController] Successfully fetched ${remote.length} categories from API',
         );
-      }
 
-      final List<CategoryModel> loadedCategories = categoryModelFromJson(data);
-      categories.value = loadedCategories;
+        return;
+      }
+      debugPrint('⚠️ [HomeController] No categories returned from API');
     } catch (e) {
-      debugPrint('Error loading categories: $e');
+      debugPrint(
+        '❌ [HomeController] API Category fetch failed, falling back to local JSON: $e',
+      );
     } finally {
       isLoading.value = false;
     }
@@ -51,32 +52,34 @@ class Homecontroller {
 
   void fetchProducts(BuildContext context) async {
     isProductsLoading.value = true;
+    debugPrint('🔄 [HomeController] Fetching products...');
+
+    // Try API first
     try {
-      String? data;
-      final List<String> assetKeys = [
-        'assets/json/products.json',
-        'json/products.json',
-      ];
-
-      for (final key in assetKeys) {
-        try {
-          data = await rootBundle.loadString(key);
-          if (data.isNotEmpty) {
-            break;
-          }
-        } catch (_) {}
-      }
-
-      if (data == null || data.isEmpty) {
-        throw Exception(
-          'Unable to load products asset. Tried: ${assetKeys.join(', ')}',
+      final res = await ApiService().getProducts();
+      final items =
+          (res['data'] as Map<String, dynamic>?)?['products']
+              as List<dynamic>? ??
+          <dynamic>[];
+      final remote =
+          items
+              .map(
+                (item) => ProductModel.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+      if (remote.isNotEmpty) {
+        products.value = remote;
+        debugPrint(
+          '✅ [HomeController] Successfully fetched ${remote.length} products from API',
         );
-      }
 
-      final List<ProductModel> loadedProducts = productModelFromJson(data);
-      products.value = loadedProducts;
+        return;
+      }
+      debugPrint('⚠️ [HomeController] No products returned from API');
     } catch (e) {
-      debugPrint('Error loading products: $e');
+      debugPrint(
+        '❌ [HomeController] API Product fetch failed, falling back to local JSON: $e',
+      );
     } finally {
       isProductsLoading.value = false;
     }

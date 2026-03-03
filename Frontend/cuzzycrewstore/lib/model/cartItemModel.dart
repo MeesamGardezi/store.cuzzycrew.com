@@ -15,7 +15,7 @@ class CartItem {
 
   final String id;
   final ProductModel product;
-  final String selectedColor; // color hex
+  final String selectedColor; 
   final String selectedSize;
   final int quantity;
   final double priceAtAddTime;

@@ -10,6 +10,7 @@ import 'package:cuzzycrewstore/views/widgets/CategoryBox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:carousel_text/carousel_text.dart';
 
 class HomeTabletLayout extends StatefulWidget {
@@ -239,7 +240,9 @@ class HomeTabletLayoutState extends State<HomeTabletLayout> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () {     NavWrapperController.selectedIndex.value = 1;},
+                      onPressed: () {
+                        NavWrapperController.selectedIndex.value = 1;
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryAccent,
                         padding: EdgeInsets.symmetric(
@@ -377,12 +380,17 @@ class HomeTabletLayoutState extends State<HomeTabletLayout> {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        Text(
-                          'VIEW ALL',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: AppColors.primaryAccent,
-                            fontSize: width * 0.012,
-                            fontWeight: FontWeight.w700,
+                        GestureDetector(
+                          onTap: () => NavWrapperController.setSelectedIndex(1),
+                          child: Text(
+                            'VIEW ALL',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.primaryAccent,
+                              fontSize: width * 0.012,
+                              fontWeight: FontWeight.w700,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.primaryAccent,
+                            ),
                           ),
                         ),
                       ],
@@ -408,13 +416,15 @@ class HomeTabletLayoutState extends State<HomeTabletLayout> {
                               return const SizedBox.shrink();
                             }
 
-                            return Column(
+                            return Wrap(
+                              spacing: width * 0.02,
+                              runSpacing: height * 0.02,
                               children:
                                   productItems.map((item) {
-                                    return Padding(
-                                      padding: EdgeInsets.only(
-                                        bottom: height * 0.02,
-                                      ),
+                                    return SizedBox(
+                                      width:
+                                          (width - (20 * 3)) /
+                                          2, // 2 per row with spacing
                                       child: _VerticalProductCard(
                                         product: item,
                                       ),
@@ -536,7 +546,7 @@ class _VerticalProductCard extends StatelessWidget {
           ),
           SizedBox(height: width * 0.005),
           Text(
-            '\$${product.price.toStringAsFixed(2)}',
+            formatPrice(product.price, currencyCode: product.currency),
             style: textTheme.bodyMedium?.copyWith(
               color: AppColors.primaryAccent,
               fontSize: width * 0.026,

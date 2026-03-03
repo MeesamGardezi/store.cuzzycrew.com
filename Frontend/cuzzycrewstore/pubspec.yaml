@@ -39,6 +39,8 @@ dependencies:
   carousel_text: ^0.0.7
   provider: ^6.0.0
   uuid: ^4.0.0
+  shared_preferences: ^2.2.3
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:
