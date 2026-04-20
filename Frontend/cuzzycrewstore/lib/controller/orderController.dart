@@ -1,12 +1,18 @@
 import 'package:cuzzycrewstore/api/ApiService.dart';
+import 'package:cuzzycrewstore/config/AppConfig.dart';
 import 'package:cuzzycrewstore/model/orderModel.dart';
 import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderController extends ChangeNotifier {
-  OrderController({ApiService? apiService})
-    : _apiService = apiService ?? ApiService();
+  OrderController({
+    ApiService? apiService,
+    Future<bool> Function(String checkoutUrl)? launchCheckoutUrl,
+  }) : _apiService = apiService ?? ApiService(),
+       _launchCheckoutUrl = launchCheckoutUrl;
 
   final ApiService _apiService;
+  final Future<bool> Function(String checkoutUrl)? _launchCheckoutUrl;
 
   bool _isProcessing = false;
   String? _errorMessage;
@@ -28,9 +34,13 @@ class OrderController extends ChangeNotifier {
       final idempotencyKey =
           'idem_${DateTime.now().microsecondsSinceEpoch.toString()}';
 
+      final items = _buildOrderItems(cartData);
+      final shippingPayload = _buildShippingPayload(shippingAddress);
+
       final orderResponse = await _apiService.createOrder(
-        // TODO: replace with real persisted shipping address id from backend.
-        shippingAddressId: 'shipping_checkout_temp',
+        items: items,
+        currency: (cartData['currency'] ?? 'USD').toString(),
+        shippingAddress: shippingPayload,
         idempotencyKey: idempotencyKey,
       );
 
@@ -40,31 +50,20 @@ class OrderController extends ChangeNotifier {
         shippingAddress: shippingAddress,
       );
 
-      final intentResponse = await _apiService.createPaymentIntent(
+      final checkoutResponse = await _apiService.createCheckout(
         orderId: createdOrder.id,
+        orderToken: createdOrder.orderToken ?? '',
       );
 
-      final paymentIntentId =
-          _extractData(intentResponse)['stripePaymentIntentId']?.toString();
-      _currentOrder = OrderModel(
-        id: createdOrder.id,
-        stripeSessionId: createdOrder.stripeSessionId,
-        paymentIntentId: paymentIntentId,
-        paymentStatus: PaymentStatus.pending,
-        currency: createdOrder.currency,
-        subtotal: createdOrder.subtotal,
-        tax: createdOrder.tax,
-        shippingCost: createdOrder.shippingCost,
-        total: createdOrder.total,
-        items: createdOrder.items,
-        shippingAddress: createdOrder.shippingAddress,
-        createdAt: createdOrder.createdAt,
+      _currentOrder = createdOrder;
+
+      final checkoutUrl =
+          _extractData(checkoutResponse)['checkoutUrl']?.toString() ?? '';
+      final launched = await _launchHostedCheckout(
+        checkoutUrl: checkoutUrl,
+        orderId: createdOrder.id,
+        orderToken: createdOrder.orderToken ?? '',
       );
-
-      final clientSecret =
-          _extractData(intentResponse)['clientSecret']?.toString();
-
-      final launched = await _launchStripeCheckout(clientSecret: clientSecret);
       if (!launched) {
         _currentOrder = _currentOrder!.copyWith(
           paymentStatus: PaymentStatus.failed,
@@ -72,13 +71,11 @@ class OrderController extends ChangeNotifier {
         return PaymentStatus.failed;
       }
 
-      final statusResponse = await _apiService.getPaymentStatus(
-        orderId: createdOrder.id,
-      );
-      final paymentData = _extractData(statusResponse)['payment'];
-      final paymentStatus = _mapPaymentStatus(paymentData);
+      final paymentStatus = await _pollPaymentStatus(order: createdOrder);
 
-      _currentOrder = _currentOrder!.copyWith(paymentStatus: paymentStatus);
+      if (_currentOrder != null) {
+        _currentOrder = _currentOrder!.copyWith(paymentStatus: paymentStatus);
+      }
       return paymentStatus;
     } catch (error) {
       _errorMessage = error.toString();
@@ -110,17 +107,109 @@ class OrderController extends ChangeNotifier {
     return PaymentStatus.pending;
   }
 
-  Future<bool> _launchStripeCheckout({String? clientSecret}) async {
-    if (clientSecret == null || clientSecret.isEmpty) {
-      return false;
+  Future<PaymentStatus> _pollPaymentStatus({required OrderModel order}) async {
+    final orderToken = order.orderToken;
+    if (orderToken == null || orderToken.isEmpty) {
+      return PaymentStatus.failed;
     }
 
-    // TODO: Integrate Stripe SDK/UI here.
-    // Suggested options:
-    // 1) flutter_stripe PaymentSheet with the clientSecret.
-    // 2) Redirect to your backend-hosted Stripe Checkout session URL.
-    // Returning true means checkout UI completed and backend status can be polled.
-    return true;
+    final delays = <Duration>[
+      const Duration(seconds: 1),
+      const Duration(seconds: 2),
+      const Duration(seconds: 4),
+      const Duration(seconds: 8),
+    ];
+
+    for (final delay in delays) {
+      final statusResponse = await _apiService.getPaymentStatus(
+        orderId: order.id,
+        orderToken: orderToken,
+      );
+      final data = _extractData(statusResponse);
+      final paymentData = data['payment'];
+      final paymentStatus = _mapPaymentStatus(paymentData);
+      final refreshedOrder = data['order'];
+      if (refreshedOrder is Map<String, dynamic>) {
+        _currentOrder = OrderModel.fromJson(refreshedOrder);
+      }
+
+      if (paymentStatus == PaymentStatus.paid ||
+          paymentStatus == PaymentStatus.failed) {
+        return paymentStatus;
+      }
+
+      await Future.delayed(delay);
+    }
+
+    final finalStatusResponse = await _apiService.getPaymentStatus(
+      orderId: order.id,
+      orderToken: orderToken,
+    );
+    final finalData = _extractData(finalStatusResponse);
+    final finalPaymentStatus = _mapPaymentStatus(finalData['payment']);
+    final finalOrder = finalData['order'];
+    if (finalOrder is Map<String, dynamic>) {
+      _currentOrder = OrderModel.fromJson(finalOrder);
+    }
+    return finalPaymentStatus;
+  }
+
+  Future<bool> _launchHostedCheckout({
+    required String checkoutUrl,
+    required String orderId,
+    required String orderToken,
+  }) async {
+    if (kUseDummyPaddle) {
+      try {
+        await _apiService.simulatePaymentSuccess(
+          orderId: orderId,
+          orderToken: orderToken,
+        );
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    if (checkoutUrl.isEmpty) return false;
+
+    if (_launchCheckoutUrl != null) {
+      return _launchCheckoutUrl(checkoutUrl);
+    }
+
+    final uri = Uri.tryParse(checkoutUrl);
+    if (uri == null) return false;
+
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Map<String, dynamic> _buildShippingPayload(ShippingAddress address) {
+    return {
+      'fullName': address.fullName,
+      'email': address.email,
+      'phone': address.phone,
+      'street': address.street,
+      'city': address.city,
+      'state': address.state,
+      'zipCode': address.zipCode,
+      'country': address.country,
+    };
+  }
+
+  List<Map<String, dynamic>> _buildOrderItems(Map<String, dynamic> cartData) {
+    final rawItems = (cartData['items'] as List<dynamic>? ?? const <dynamic>[]);
+    return rawItems
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .map(
+          (item) => {
+            'productId': item['productId']?.toString() ?? '',
+            'quantity': (item['quantity'] as num?)?.toInt() ?? 1,
+            'selectedSize': item['selectedSize']?.toString() ?? '',
+            'selectedColor': item['selectedColor']?.toString() ?? '',
+          },
+        )
+        .where((item) => item['productId'].toString().isNotEmpty)
+        .toList();
   }
 
   Map<String, dynamic> _extractData(Map<String, dynamic> response) {
@@ -148,34 +237,43 @@ class OrderController extends ChangeNotifier {
 
     return OrderModel(
       id: (order['id'] ?? '').toString(),
-      stripeSessionId: order['stripeSessionId']?.toString(),
-      paymentIntentId: order['stripePaymentIntentId']?.toString(),
+      orderToken: order['orderToken']?.toString(),
+      orderStatus: OrderModel.parseOrderStatus(
+        (order['status'] ?? 'PENDING_PAYMENT').toString().toUpperCase(),
+      ),
+      paymentProvider: (order['paymentProvider'] ?? 'paddle').toString(),
       paymentStatus: PaymentStatus.pending,
       currency: (order['currency'] ?? cartData['currency'] ?? 'USD').toString(),
-      subtotal:
-          (order['subtotal'] as num?)?.toDouble() ??
-          (cartData['subtotal'] as num?)?.toDouble() ??
-          0,
-      tax: (order['tax'] as num?)?.toDouble() ?? 0,
-      shippingCost: (order['shippingCost'] as num?)?.toDouble() ?? 0,
-      total:
-          (order['total'] as num?)?.toDouble() ??
-          (cartData['total'] as num?)?.toDouble() ??
-          0,
+      subtotal: _displayAmount(order['subtotal'], cartData['subtotal']),
+      tax: _displayAmount(order['tax'], 0),
+      shippingCost: _displayAmount(order['shippingCost'], 0),
+      total: _displayAmount(order['total'], cartData['total']),
       items: items,
       shippingAddress: shippingAddress,
       createdAt:
           DateTime.tryParse((order['createdAt'] ?? '').toString()) ??
           DateTime.now(),
+      processed: (order['processed'] as bool?) ?? false,
+      processedAt: DateTime.tryParse((order['processedAt'] ?? '').toString()),
+      processedBy: order['processedBy']?.toString(),
     );
+  }
+
+  double _displayAmount(dynamic backendValue, dynamic fallbackMajorValue) {
+    if (backendValue is num) {
+      return backendValue.toDouble() / 100.0;
+    }
+
+    return (fallbackMajorValue as num?)?.toDouble() ?? 0.0;
   }
 }
 
 extension on OrderModel {
   OrderModel copyWith({
     String? id,
-    String? stripeSessionId,
-    String? paymentIntentId,
+    String? orderToken,
+    OrderStatus? orderStatus,
+    String? paymentProvider,
     PaymentStatus? paymentStatus,
     String? currency,
     double? subtotal,
@@ -185,11 +283,15 @@ extension on OrderModel {
     List<Map<String, dynamic>>? items,
     ShippingAddress? shippingAddress,
     DateTime? createdAt,
+    bool? processed,
+    DateTime? processedAt,
+    String? processedBy,
   }) {
     return OrderModel(
       id: id ?? this.id,
-      stripeSessionId: stripeSessionId ?? this.stripeSessionId,
-      paymentIntentId: paymentIntentId ?? this.paymentIntentId,
+      orderToken: orderToken ?? this.orderToken,
+      orderStatus: orderStatus ?? this.orderStatus,
+      paymentProvider: paymentProvider ?? this.paymentProvider,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       currency: currency ?? this.currency,
       subtotal: subtotal ?? this.subtotal,
@@ -199,6 +301,9 @@ extension on OrderModel {
       items: items ?? this.items,
       shippingAddress: shippingAddress ?? this.shippingAddress,
       createdAt: createdAt ?? this.createdAt,
+      processed: processed ?? this.processed,
+      processedAt: processedAt ?? this.processedAt,
+      processedBy: processedBy ?? this.processedBy,
     );
   }
 }

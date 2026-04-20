@@ -46,6 +46,7 @@ adminRoutes.patch('/variants/:id/stock', validateRequest(updateVariantStockSchem
 
 adminRoutes.get('/orders', adminController.listOrders);
 adminRoutes.patch('/orders/:id/status', validateRequest(updateOrderStatusSchema), adminController.updateOrderStatus);
+adminRoutes.patch('/orders/:id/toggleprocessedkey', validateRequest(idParamSchema), adminController.toggleProcessedOrder);
 
 adminRoutes.post('/coupons', validateRequest(createCouponSchema), adminController.createCoupon);
 adminRoutes.get('/dashboard', adminController.dashboard);

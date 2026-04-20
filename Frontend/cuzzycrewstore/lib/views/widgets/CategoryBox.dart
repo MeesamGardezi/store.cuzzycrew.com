@@ -1,4 +1,5 @@
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/views/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
 
 class CategoryBoxItem {
@@ -95,10 +96,10 @@ class _CategoryBoxState extends State<CategoryBox> {
 
     final double titleSize =
         isMobile ? width * 0.03 : (isTablet ? width * 0.018 : width * 0.012);
-    final double radius = isMobile ? 8 : (isTablet ? 10 : 12);
+    final effectiveOnTap = widget.launched ? widget.onTap : null;
 
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: effectiveOnTap,
       behavior: HitTestBehavior.opaque,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,7 +109,7 @@ class _CategoryBoxState extends State<CategoryBox> {
               onEnter: (_) => setState(() => _isHovered = true),
               onExit: (_) => setState(() => _isHovered = false),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(radius),
+                borderRadius: BorderRadius.zero,
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -118,9 +119,18 @@ class _CategoryBoxState extends State<CategoryBox> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      widget.thumbnail.startsWith('http')
-                          ? Image.network(widget.thumbnail, fit: BoxFit.cover, )
-                          : Image.asset(widget.thumbnail, fit: BoxFit.cover),
+                      AdaptiveImage(
+                        source: widget.thumbnail,
+                        fit: BoxFit.cover,
+                        fallback: Container(
+                          color: colorScheme.surfaceContainerHighest,
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.image_not_supported_outlined,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 200),
                         opacity: _isHovered ? 1 : 0,
@@ -133,10 +143,7 @@ class _CategoryBoxState extends State<CategoryBox> {
                         opacity: _isHovered ? 1 : 0,
                         child: Center(
                           child: ElevatedButton(
-                            onPressed:
-                                widget.launched
-                                    ? (widget.onTap ?? () {})
-                                    : null,
+                            onPressed: effectiveOnTap,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primaryAccent,
                               foregroundColor: AppColors.darkText,
@@ -145,7 +152,7 @@ class _CategoryBoxState extends State<CategoryBox> {
                                 vertical: 14,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(0),
+                                borderRadius: BorderRadius.zero,
                               ),
                             ),
                             child: Text(

@@ -54,10 +54,10 @@ class ProductModel {
             )
             .toList();
 
-    final thumbnail = (json['thumbnail'] as String?) ?? '';
+    final thumbnail = _normalizeMediaRef(json['thumbnail']);
     final parsedImages =
         (json['images'] as List<dynamic>? ?? <dynamic>[])
-            .whereType<String>()
+            .map(_normalizeMediaRef)
             .where((item) => item.trim().isNotEmpty)
             .toList();
 
@@ -70,32 +70,55 @@ class ProductModel {
         }.toList();
 
     return ProductModel(
-      id: (json['id'] as String?) ?? '',
-      category: (json['category'] as String?) ?? 'uncategorized',
+      id: (json['id'] ?? '').toString(),
+      category: (json['category'] ?? 'uncategorized').toString(),
       dateAdded:
-          DateTime.tryParse((json['dateAdded'] as String?) ?? '') ??
+          DateTime.tryParse((json['dateAdded'] ?? '').toString()) ??
           DateTime.fromMillisecondsSinceEpoch(0),
-      name: (json['name'] as String?) ?? '',
-      shortName: (json['shortName'] as String?) ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      currency: (json['currency'] as String?) ?? 'USD',
-      unit: (json['unit'] as String?) ?? 'piece',
-      availableUnits: (json['availableUnits'] as int?) ?? 0,
+      name: (json['name'] ?? '').toString(),
+      shortName: (json['shortName'] ?? '').toString(),
+      price:
+          json['price'] is num
+              ? (json['price'] as num).toDouble()
+              : double.tryParse((json['price'] ?? '').toString()) ?? 0.0,
+      currency: (json['currency'] ?? 'USD').toString().trim().toUpperCase(),
+      unit: (json['unit'] ?? 'piece').toString(),
+      availableUnits: (json['availableUnits'] as num?)?.toInt() ?? 0,
       thumbnail: thumbnail,
       images: parsedImages.isNotEmpty ? parsedImages : fallbackImages,
-      sizeGuideImage: (json['sizeGuideImage'] as String?) ?? '',
+      sizeGuideImage: _normalizeMediaRef(json['sizeGuideImage']),
       sizes:
           json['sizes'] != null
               ? List<String>.from(
-                (json['sizes'] as List<dynamic>).map(
-                  (x) => (x as String?) ?? '',
-                ),
+                (json['sizes'] as List<dynamic>).map((x) => x.toString()),
               )
               : <String>[],
-      story: json['story'] as String?,
+      story: json['story']?.toString(),
       launched: (json['launched'] as bool?) ?? true,
       colorVariants: colorVariants,
     );
+  }
+
+  static String _normalizeMediaRef(dynamic raw) {
+    if (raw == null) return '';
+
+    dynamic value = raw;
+    if (value is Map<String, dynamic>) {
+      value = value['url'] ?? value['image'] ?? value['src'] ?? '';
+    }
+
+    var normalized = value.toString().trim();
+    if (normalized.length >= 2 &&
+        normalized.startsWith('"') &&
+        normalized.endsWith('"')) {
+      normalized = normalized.substring(1, normalized.length - 1).trim();
+    }
+
+    if (normalized.startsWith('https://mock-storage.local/')) {
+      return '';
+    }
+
+    return normalized;
   }
 
   bool get isNewArrival {
@@ -104,10 +127,49 @@ class ProductModel {
   }
 
   String get primaryImage {
-    if (images.isNotEmpty) {
-      return images.first;
+    final normalizedThumbnail = thumbnail.trim();
+
+    if (normalizedThumbnail.isNotEmpty) {
+      return normalizedThumbnail;
     }
-    return thumbnail;
+
+    for (final image in images) {
+      final candidate = image.trim();
+      if (candidate.isNotEmpty) {
+        return candidate;
+      }
+    }
+
+    for (final variant in colorVariants) {
+      final candidate = variant.image.trim();
+      if (candidate.isNotEmpty) {
+        return candidate;
+      }
+    }
+
+    return normalizedThumbnail;
+  }
+
+  List<String> get imageCandidates {
+    final candidates = <String>[];
+    final seen = <String>{};
+
+    void add(String value) {
+      final normalized = value.trim();
+      if (normalized.isEmpty || seen.contains(normalized)) return;
+      seen.add(normalized);
+      candidates.add(normalized);
+    }
+
+    add(thumbnail);
+    for (final image in images) {
+      add(image);
+    }
+    for (final variant in colorVariants) {
+      add(variant.image);
+    }
+
+    return candidates;
   }
 }
 
@@ -124,8 +186,8 @@ class ProductColorVariant {
 
   factory ProductColorVariant.fromJson(Map<String, dynamic> json) =>
       ProductColorVariant(
-        colorName: json['colorName'] ?? '',
-        colorHex: json['colorHex'] ?? '#000000',
-        image: json['image'] ?? '',
+        colorName: (json['colorName'] ?? '').toString(),
+        colorHex: (json['colorHex'] ?? '#000000').toString(),
+        image: ProductModel._normalizeMediaRef(json['image']),
       );
 }

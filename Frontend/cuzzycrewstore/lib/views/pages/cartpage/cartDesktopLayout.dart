@@ -1,5 +1,6 @@
 import 'package:cuzzycrewstore/controller/cartController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/checkoutpage/checkoutPage.dart';
 import 'package:flutter/material.dart';
@@ -15,23 +16,34 @@ class CartDesktopLayout extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final bodyColor = isDark ? AppColors.darkText : AppColors.lightText;
     final width = MediaQuery.of(context).size.width;
-    final scale = (width / 1280).clamp(0.85, 1.2);
+    final scale = (width / 1280).clamp(0.852, 1.2);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 1,
+        backgroundColor:
+            isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        toolbarHeight: DesignUtils.topBarHeight,
+        titleSpacing: 0,
+        shape: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            width: 1.5,
+          ),
+        ),
         leading: IconButton(
+          style: DesignUtils.topBarIconButtonStyle(isDark: isDark),
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'YOUR CART',
-          style: textTheme.headlineSmall?.copyWith(
-            color: bodyColor,
+          style: DesignUtils.topBarTitleStyle(
+            isDark: isDark,
             fontSize: 24,
-            letterSpacing: 0.5,
+            letterSpacing: 1.4,
           ),
         ),
         centerTitle: false,
@@ -146,7 +158,7 @@ class _CartItemCard extends StatelessWidget {
       padding: EdgeInsets.all(16 * scale),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.zero,
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
@@ -159,7 +171,7 @@ class _CartItemCard extends StatelessWidget {
             width: 160 * scale,
             height: 160 * scale,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.zero,
               image: DecorationImage(
                 image: NetworkImage(item.product.primaryImage),
                 fit: BoxFit.cover,
@@ -254,7 +266,7 @@ class _CartItemCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.primaryAccent10,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Text(
                     'REMOVE',
@@ -302,7 +314,7 @@ class _SpecTag extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightSurfaceAlt,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.zero,
       ),
       child: Text(
         label.toUpperCase(),
@@ -337,7 +349,7 @@ class _QuantityControl extends StatelessWidget {
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.zero,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -431,7 +443,7 @@ class _OrderSummarySidebar extends StatelessWidget {
       padding: EdgeInsets.all(20 * scale),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.zero,
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
@@ -458,7 +470,7 @@ class _OrderSummarySidebar extends StatelessWidget {
                       child: Text(
                         '${item.product.name} * ${item.quantity}',
                         style: textTheme.bodySmall?.copyWith(
-                          fontSize: 13 * scale,
+                          fontSize: 11 * scale,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -471,7 +483,7 @@ class _OrderSummarySidebar extends StatelessWidget {
                       ),
                       style: textTheme.bodyMedium?.copyWith(
                         color: bodyColor,
-                        fontSize: 13 * scale,
+                        fontSize: 11 * scale,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -517,9 +529,7 @@ class _OrderSummarySidebar extends StatelessWidget {
               backgroundColor: AppColors.primaryAccent,
               foregroundColor: AppColors.darkText,
               padding: EdgeInsets.symmetric(vertical: 14 * scale),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             ),
             onPressed: onCheckout,
             child: Text(

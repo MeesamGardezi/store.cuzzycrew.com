@@ -15,6 +15,7 @@ class ShopController extends ChangeNotifier {
 
   bool _isLoading = false;
   List<ProductModel> _allProducts = <ProductModel>[];
+  Set<String> _apiCategoryKeys = <String>{};
 
   String _selectedCategory = allCategoryKey;
   final Set<String> _selectedSizes = <String>{};
@@ -97,6 +98,7 @@ class ShopController extends ChangeNotifier {
         debugPrint(
           '✅ [ShopController] Successfully loaded ${_allProducts.length} products from API',
         );
+        await _fetchCategoryKeys(api);
         _setupPriceBounds();
         _applyInitialCategory();
         _clampCurrentPage();
@@ -147,6 +149,7 @@ class ShopController extends ChangeNotifier {
     debugPrint(
       '✅ [ShopController] Loaded ${_allProducts.length} products from local JSON fallback',
     );
+    await _fetchCategoryKeys();
     _setupPriceBounds();
     _applyInitialCategory();
     _clampCurrentPage();
@@ -277,9 +280,11 @@ class ShopController extends ChangeNotifier {
       return;
     }
 
-    final hasCategory = _allProducts.any(
-      (product) => normalizeCategory(product.category) == normalized,
-    );
+    final hasCategory =
+        _apiCategoryKeys.contains(normalized) ||
+        _allProducts.any(
+          (product) => normalizeCategory(product.category) == normalized,
+        );
 
     if (hasCategory) {
       selectCategory(normalized);
@@ -288,6 +293,11 @@ class ShopController extends ChangeNotifier {
 
   Map<String, int> get categoryCounts {
     final counts = <String, int>{allCategoryKey: _allProducts.length};
+
+    for (final categoryKey in _apiCategoryKeys) {
+      if (categoryKey == allCategoryKey) continue;
+      counts.putIfAbsent(categoryKey, () => 0);
+    }
 
     for (final product in _allProducts) {
       final key = normalizeCategory(product.category);
@@ -466,13 +476,51 @@ class ShopController extends ChangeNotifier {
       return;
     }
 
-    final hasCategory = _allProducts.any(
-      (product) => normalizeCategory(product.category) == normalized,
-    );
+    final hasCategory =
+        _apiCategoryKeys.contains(normalized) ||
+        _allProducts.any(
+          (product) => normalizeCategory(product.category) == normalized,
+        );
 
     if (hasCategory) {
       _selectedCategory = normalized;
       _setupPriceBounds(forCategoryOnly: true);
+    }
+  }
+
+  Future<void> _fetchCategoryKeys([ApiService? api]) async {
+    try {
+      final service = api ?? ApiService();
+      final res = await service.getCategories();
+      final data = res['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+      final items =
+          data['items'] as List<dynamic>? ??
+          data['categories'] as List<dynamic>? ??
+          const <dynamic>[];
+
+      final keys = <String>{};
+      for (final item in items.whereType<Map>()) {
+        final json = Map<String, dynamic>.from(item);
+        final launched = (json['launched'] as bool?) ?? true;
+        if (!launched) continue;
+
+        final slug = normalizeCategory((json['slug'] ?? '').toString());
+        final name = normalizeCategory((json['name'] ?? '').toString());
+        final key = slug.isNotEmpty ? slug : name;
+        if (key.isNotEmpty) {
+          keys.add(key);
+        }
+      }
+
+      _apiCategoryKeys = keys;
+      debugPrint(
+        '✅ [ShopController] Loaded ${_apiCategoryKeys.length} category keys from API',
+      );
+    } catch (e) {
+      debugPrint(
+        '⚠️ [ShopController] Failed to fetch category keys from API: $e',
+      );
+      _apiCategoryKeys = <String>{};
     }
   }
 

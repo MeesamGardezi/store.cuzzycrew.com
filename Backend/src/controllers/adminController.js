@@ -49,7 +49,9 @@ const updateVariantStock = asyncHandler(async (req, res) => {
 const listOrders = asyncHandler(async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit || 50), 1), 100);
   const cursor = req.query.cursor ? String(req.query.cursor) : null;
-  const result = await adminService.listOrders({ limit, cursor });
+  const processed =
+    req.query.processed === 'true' ? true : req.query.processed === 'false' ? false : null;
+  const result = await adminService.listOrders({ limit, cursor, processed });
   return sendSuccess(res, { data: result, message: '' });
 });
 
@@ -60,6 +62,16 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     actorUserId: req.auth.userId,
     orderId: id,
     status,
+    correlationId: req.correlationId,
+  });
+  return sendSuccess(res, { data: updated, message: '' });
+});
+
+const toggleProcessedOrder = asyncHandler(async (req, res) => {
+  const { id } = req.validated.params;
+  const updated = await adminService.toggleProcessedOrder({
+    actorUserId: req.auth.userId,
+    orderId: id,
     correlationId: req.correlationId,
   });
   return sendSuccess(res, { data: updated, message: '' });
@@ -139,6 +151,7 @@ module.exports = {
   setWebsiteBanner,
   listOrders,
   updateOrderStatus,
+  toggleProcessedOrder,
   createCoupon,
   dashboard,
 };

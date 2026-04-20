@@ -22,7 +22,7 @@ function normalizeCategory(doc) {
 
 async function listForApp() {
   const snap = await categoriesCol().where('deletedAt', '==', null).get();
-  const items = snap.docs.map((d) => normalizeCategory({ id: d.id, ...d.data() }));
+  const items = snap.docs.map((d) => normalizeCategory({ ...d.data(), id: d.id }));
 
   items.sort((a, b) => {
     const sa = Number.isFinite(Number(a.sortOrder)) ? Number(a.sortOrder) : 9999;

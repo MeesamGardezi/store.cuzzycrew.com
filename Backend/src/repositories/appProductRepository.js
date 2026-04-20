@@ -28,6 +28,27 @@ function safeIso(value) {
   return null;
 }
 
+function normalizeMediaRef(raw) {
+  if (raw == null) return '';
+
+  let value = raw;
+  if (value && typeof value === 'object') {
+    value = value.url || value.image || value.src || value.downloadURL || value.publicUrl || value.link || '';
+  }
+
+  let normalized = String(value || '').trim();
+  if (normalized.length >= 2 && normalized.startsWith('"') && normalized.endsWith('"')) {
+    normalized = normalized.slice(1, -1).trim();
+  }
+
+  // Mock storage URLs are not publicly renderable and should never be served to the storefront.
+  if (normalized.startsWith('https://mock-storage.local/')) {
+    return '';
+  }
+
+  return normalized;
+}
+
 function normalizeColorVariants(raw) {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -35,7 +56,7 @@ function normalizeColorVariants(raw) {
     .map((v) => ({
       colorName: String(v.colorName || ''),
       colorHex: String(v.colorHex || '#000000'),
-      image: String(v.image || ''),
+      image: normalizeMediaRef(v.image),
     }))
     .filter((v) => v.colorName || v.image);
 }
@@ -51,6 +72,11 @@ function normalizePrice(doc) {
 }
 
 function normalizeProduct(doc, { categorySlug } = {}) {
+  const normalizedCurrency = String(doc.currency || 'USD').trim().toUpperCase() || 'USD';
+  const normalizedImages = Array.isArray(doc.images)
+    ? doc.images.map((entry) => normalizeMediaRef(entry)).filter((entry) => entry)
+    : [];
+
   return {
     id: String(doc.id || ''),
     category: String(categorySlug || doc.category || 'uncategorized'),
@@ -58,12 +84,12 @@ function normalizeProduct(doc, { categorySlug } = {}) {
     name: String(doc.name || ''),
     shortName: String(doc.shortName || doc.name || ''),
     price: normalizePrice(doc),
-    currency: String(doc.currency || 'USD'),
+    currency: normalizedCurrency,
     unit: String(doc.unit || 'piece'),
     availableUnits: Number.isFinite(Number(doc.availableUnits)) ? Number(doc.availableUnits) : 0,
-    thumbnail: String(doc.thumbnail || ''),
-    images: Array.isArray(doc.images) ? doc.images.map((i) => String(i)) : [],
-    sizeGuideImage: String(doc.sizeGuideImage || ''),
+    thumbnail: normalizeMediaRef(doc.thumbnail),
+    images: normalizedImages,
+    sizeGuideImage: normalizeMediaRef(doc.sizeGuideImage),
     sizes: Array.isArray(doc.sizes) ? doc.sizes.map((s) => String(s)) : [],
     story: String(doc.story || ''),
     colorVariants: normalizeColorVariants(doc.colorVariants),

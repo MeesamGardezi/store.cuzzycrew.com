@@ -7,9 +7,11 @@ import 'package:cuzzycrewstore/model/categoryModel.dart';
 import 'package:cuzzycrewstore/model/productModel.dart';
 import 'package:cuzzycrewstore/views/widgets/CategoryBox.dart';
 import 'package:cuzzycrewstore/views/widgets/ProductBox.dart';
+import 'package:cuzzycrewstore/views/widgets/store_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:carousel_text/carousel_text.dart';
 
 class HomeDesktopLayout extends StatefulWidget {
@@ -111,9 +113,10 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     final isDark = theme.brightness == Brightness.dark;
+    final pagePadding = DesignUtils.pagePadding(width).horizontal / 2;
     final titleColor = AppColors.primaryAccent;
     final bodyColor = isDark ? AppColors.darkText : AppColors.lightText;
-    final heroHeight = height * 0.87;
+    final heroHeight = height * 0.883;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -157,9 +160,9 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                             colors: [
-                              AppColors.darkBase.withOpacity(0.78),
-                              AppColors.darkBase.withOpacity(0.35),
-                              AppColors.darkBase.withOpacity(0.15),
+                              DesignUtils.heroOverlayStart(),
+                              DesignUtils.heroOverlayMiddle(),
+                              DesignUtils.heroOverlayEnd(),
                             ],
                           ),
                         ),
@@ -173,7 +176,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              AppColors.darkBase.withOpacity(0.35),
+                              AppColors.darkBase.withValues(alpha: 0.35),
                             ],
                           ),
                         ),
@@ -181,7 +184,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(
-                        horizontal: width * 0.03,
+                        horizontal: pagePadding,
                         vertical: height * 0.06,
                       ),
                       child: Column(
@@ -211,7 +214,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                                         style: textTheme.bodyMedium?.copyWith(
                                           color: titleColor,
                                           fontWeight: FontWeight.w900,
-                                          fontSize: width * 0.05,
+                                          fontSize: width * 0.046,
                                           height: 1.05,
                                         ),
                                       ),
@@ -220,7 +223,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                                         style: textTheme.bodyMedium?.copyWith(
                                           color: AppColors.darkText,
                                           fontWeight: FontWeight.w900,
-                                          fontSize: width * 0.05,
+                                          fontSize: width * 0.046,
                                           height: 1.05,
                                         ),
                                       ),
@@ -242,7 +245,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                                     'PREMIUM STREETWEAR FOR THE CREW.',
                                     style: textTheme.bodyMedium?.copyWith(
                                       color: AppColors.darkText,
-                                      fontSize: width * 0.0115,
+                                      fontSize: width * 0.0107,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -289,7 +292,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                                     vertical: 24,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(0),
+                                    borderRadius: BorderRadius.zero,
                                   ),
                                 ),
                                 child: Text(
@@ -315,10 +318,9 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                                       color:
                                           _currentBanner == index
                                               ? AppColors.primaryAccent
-                                              : AppColors.darkText.withOpacity(
-                                                0.5,
+                                              : AppColors.darkText.withValues(
+                                                alpha: 0.5,
                                               ),
-                                      borderRadius: BorderRadius.circular(9),
                                     ),
                                   ),
                                 ),
@@ -341,7 +343,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                     rotatingWords: [
                       'FREE SHIPPING ON ALL ORDERS',
                       'NEW ARRIVALS DROPPING WEEKLY',
-                      'JOIN THE CREW FOR EXCLUSIVE DEALS',
+                      'LIMITED DROPS. FAST SELL-OUTS.',
                     ],
 
                     animationType: AnimationType.typing,
@@ -361,9 +363,9 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
               ),
               SizedBox(height: height * 0.01),
               Container(
-                padding: const EdgeInsets.only(
-                  left: 30,
-                  right: 30,
+                padding: EdgeInsets.only(
+                  left: pagePadding,
+                  right: pagePadding,
                   top: 30,
                   bottom: 30,
                 ),
@@ -411,23 +413,48 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
                               );
                             }
 
-                            final featuredItems =
-                                categories.take(4).map((item) {
-                                  return CategoryBoxItem(
-                                    title: item.name,
-                                    thumbnail: item.thumbnail,
-                                    launched: item.launched,
-                                    onTap:
-                                        () =>
-                                            NavWrapperController.openShopWithCategory(
-                                              item.slug,
-                                            ),
-                                  );
-                                }).toList();
+                            return ValueListenableBuilder<List<ProductModel>>(
+                              valueListenable: homeController.products,
+                              builder: (context, products, __) {
+                                String normalize(String value) =>
+                                    value.trim().toLowerCase();
 
-                            return CategoryBoxGrid(
-                              items: featuredItems,
-                              horizontalPadding: 0,
+                                final featuredItems =
+                                    categories.take(4).map((item) {
+                                      final categorySlug = normalize(item.slug);
+                                      final categoryName = normalize(item.name);
+                                      final hasProducts = products.any((
+                                        product,
+                                      ) {
+                                        final productCategory = normalize(
+                                          product.category,
+                                        );
+                                        return productCategory ==
+                                                categorySlug ||
+                                            productCategory == categoryName;
+                                      });
+                                      final canOpen =
+                                          item.launched && hasProducts;
+
+                                      return CategoryBoxItem(
+                                        title: item.name,
+                                        thumbnail: item.thumbnail,
+                                        launched: canOpen,
+                                        onTap:
+                                            canOpen
+                                                ? () =>
+                                                    NavWrapperController.openShopWithCategory(
+                                                      item.slug,
+                                                    )
+                                                : null,
+                                      );
+                                    }).toList();
+
+                                return CategoryBoxGrid(
+                                  items: featuredItems,
+                                  horizontalPadding: 0,
+                                );
+                              },
                             );
                           },
                         );
@@ -439,9 +466,9 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
               SizedBox(height: height * 0.0),
               Container(
                 width: width,
-                padding: const EdgeInsets.only(
-                  left: 30,
-                  right: 30,
+                padding: EdgeInsets.only(
+                  left: pagePadding,
+                  right: pagePadding,
                   top: 0,
                   bottom: 10,
                 ),
@@ -515,52 +542,8 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
               ),
 
               SizedBox(height: height * 0.02),
-              SafeArea(
-                left: false,
-                right: false,
-                top: false,
-                bottom: false,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: height * 0.42,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: const AssetImage(
-                              'assets/images/Container.png',
-                            ),
-                            fit: BoxFit.cover,
-                            colorFilter: ColorFilter.mode(
-                              isDark
-                                  ? AppColors.darkBase.withOpacity(0.45)
-                                  : AppColors.lightSurface.withOpacity(0.20),
-                              BlendMode.srcATop,
-                            ),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'JOIN THE CREW',
-                            style: textTheme.headlineMedium?.copyWith(
-                              color:
-                                  isDark
-                                      ? AppColors.darkText
-                                      : AppColors.lightText,
-                              fontSize: width * 0.045,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: height * 0.03),
-                    ],
-                  ),
-                ),
-              ),
+              SizedBox(height: height * 0.03),
+              const StoreFooter(),
             ],
           ),
         ),
@@ -579,7 +562,7 @@ class HomeDesktopLayoutState extends State<HomeDesktopLayout> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.darkSurface.withOpacity(0.45),
+        color: AppColors.darkSurface.withValues(alpha: 0.45),
         border: Border.all(color: AppColors.primaryAccent, width: 1),
       ),
       child: Column(

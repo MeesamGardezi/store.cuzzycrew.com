@@ -14,8 +14,10 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(20),
   JWT_REFRESH_SECRET: z.string().min(20),
 
-  STRIPE_SECRET_KEY: z.string().min(10),
-  STRIPE_WEBHOOK_SECRET: z.string().min(10),
+  PADDLE_API_KEY: z.string().min(10).optional(),
+  PADDLE_WEBHOOK_SECRET: z.string().min(10).optional(),
+  PADDLE_CHECKOUT_URL: z.string().url().optional(),
+  PADDLE_RETURN_URL: z.string().url().optional(),
 
   FIREBASE_PROJECT_ID: z.string().optional(),
   FIREBASE_SERVICE_ACCOUNT_PATH: z.string().optional(),
@@ -47,9 +49,11 @@ function getConfig() {
       accessTtlSeconds: 15 * 60,
       refreshTtlSeconds: 7 * 24 * 60 * 60,
     },
-    stripe: {
-      secretKey: env.STRIPE_SECRET_KEY,
-      webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    paddle: {
+      apiKey: env.PADDLE_API_KEY || null,
+      webhookSecret: env.PADDLE_WEBHOOK_SECRET || null,
+      checkoutUrl: env.PADDLE_CHECKOUT_URL || null,
+      returnUrl: env.PADDLE_RETURN_URL || null,
     },
     firebase: {
       projectId: env.FIREBASE_PROJECT_ID,

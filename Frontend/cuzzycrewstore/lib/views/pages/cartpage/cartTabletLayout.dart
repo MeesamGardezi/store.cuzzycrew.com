@@ -1,5 +1,6 @@
 import 'package:cuzzycrewstore/controller/cartController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/checkoutpage/checkoutPage.dart';
 import 'package:flutter/material.dart';
@@ -20,18 +21,29 @@ class CartTabletLayout extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 1,
+        backgroundColor:
+            isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        toolbarHeight: DesignUtils.topBarHeight,
+        titleSpacing: 0,
+        shape: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            width: 1.5,
+          ),
+        ),
         leading: IconButton(
+          style: DesignUtils.topBarIconButtonStyle(isDark: isDark),
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'YOUR CART',
-          style: textTheme.headlineSmall?.copyWith(
-            color: bodyColor,
+          style: DesignUtils.topBarTitleStyle(
+            isDark: isDark,
             fontSize: 22,
-            letterSpacing: 0.5,
+            letterSpacing: 1.4,
           ),
         ),
         centerTitle: true,
@@ -134,7 +146,7 @@ class _CartItemCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.zero,
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
@@ -147,7 +159,7 @@ class _CartItemCard extends StatelessWidget {
             width: 140,
             height: 140,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.zero,
               image: DecorationImage(
                 image: NetworkImage(item.product.primaryImage),
                 fit: BoxFit.cover,
@@ -240,7 +252,7 @@ class _CartItemCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.primaryAccent10,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Text(
                     'REMOVE',
@@ -280,7 +292,7 @@ class _SpecTag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightSurfaceAlt,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.zero,
       ),
       child: Text(
         label.toUpperCase(),
@@ -311,7 +323,7 @@ class _QuantityControl extends StatelessWidget {
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.zero,
       ),
       child: Row(
         children: [
@@ -396,7 +408,7 @@ class _OrderSummarySidebar extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.zero,
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
@@ -485,9 +497,7 @@ class _OrderSummarySidebar extends StatelessWidget {
               backgroundColor: AppColors.primaryAccent,
               foregroundColor: AppColors.darkText,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             ),
             onPressed: onCheckout,
             child: Text(

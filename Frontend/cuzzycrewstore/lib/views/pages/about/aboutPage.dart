@@ -147,7 +147,6 @@ class _DesktopLayout extends StatelessWidget {
                           color: textColor,
                         ),
                       ),
-                     
                     ],
                   ),
                 ),
@@ -472,7 +471,7 @@ Widget _buildLink(
         subtitle,
         style: theme.textTheme.bodySmall?.copyWith(
           fontSize: 12 * scale,
-          color: Colors.grey.withValues(alpha: 0.7),
+          color: AppColors.mutedText,
         ),
       ),
     ],

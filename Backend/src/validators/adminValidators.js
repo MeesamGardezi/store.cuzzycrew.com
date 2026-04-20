@@ -112,7 +112,7 @@ const updateVariantStockSchema = z.object({
 const updateOrderStatusSchema = z.object({
   params: z.object({ id: z.string().min(1) }),
   body: z.object({
-    status: z.enum(['PENDING', 'PROCESSING', 'FAILED', 'CANCELED', 'SHIPPED', 'DELIVERED']),
+    status: z.enum(['PENDING_PAYMENT', 'PAID', 'FAILED', 'CANCELED', 'SHIPPED', 'DELIVERED']),
   }),
 });
 

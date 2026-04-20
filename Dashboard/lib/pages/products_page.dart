@@ -1,9 +1,15 @@
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import '../controllers/product_controller.dart';
+import '../models/category.dart';
+import '../models/product.dart';
+import '../services/api_service.dart';
+import '../utils/currency.dart';
+import 'product_detail_page.dart';
 
 class ProductsPage extends StatefulWidget {
   const ProductsPage({Key? key}) : super(key: key);
@@ -13,6 +19,16 @@ class ProductsPage extends StatefulWidget {
 }
 
 class _ProductsPageState extends State<ProductsPage> {
+  String _slugify(String value) {
+    final normalized = value
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[^a-z0-9\s-]'), '')
+        .replaceAll(RegExp(r'\s+'), '-')
+        .replaceAll(RegExp(r'-+'), '-');
+    return normalized.replaceAll(RegExp(r'^-|-$'), '');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -83,6 +99,24 @@ class _ProductsPageState extends State<ProductsPage> {
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (_) => ProductDetailPage(
+                              product: Product(
+                                id: product.id,
+                                name: product.name,
+                                price: product.price,
+                                currency: product.currency,
+                                thumbnail: product.thumbnail,
+                                category: product.category,
+                                availableUnits: product.availableUnits,
+                              ),
+                            ),
+                      ),
+                    );
+                  },
                   leading: Container(
                     width: 80,
                     height: 80,
@@ -112,7 +146,9 @@ class _ProductsPageState extends State<ProductsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 4),
-                      Text('${product.category} • \$${product.price}'),
+                      Text(
+                        '${product.category} • ${formatPrice(product.price, currencyCode: product.currency)}',
+                      ),
                       Text(
                         'Stock: ${product.availableUnits}',
                         style: TextStyle(color: Colors.grey.shade600),
@@ -176,18 +212,19 @@ class _ProductsPageState extends State<ProductsPage> {
   void _showAddProductDialog(BuildContext context) {
     final nameController = TextEditingController();
     final shortNameController = TextEditingController();
-    final categoryController = TextEditingController();
     final priceController = TextEditingController();
     final currencyController = TextEditingController(text: 'USD');
     final unitController = TextEditingController(text: 'piece');
     final stockController = TextEditingController();
     final storyController = TextEditingController();
     final sizesController = TextEditingController();
+    final categoriesFuture = _loadCurrentCategories();
 
     Uint8List? thumbnailBytes;
     List<Uint8List> imageBytes = [];
     List<Map<String, dynamic>> colorVariants = [];
     Uint8List? sizeGuideImageBytes;
+    Category? selectedCategory;
     final ImagePicker _picker = ImagePicker();
 
     showDialog(
@@ -234,14 +271,76 @@ class _ProductsPageState extends State<ProductsPage> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            // Category
-                            TextField(
-                              controller: categoryController,
-                              decoration: const InputDecoration(
-                                labelText: 'Category *',
-                                hintText: 'hoodies, tees, caps, shoes, etc.',
-                                border: OutlineInputBorder(),
-                              ),
+                            FutureBuilder<List<Category>>(
+                              future: categoriesFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 12),
+                                    child: LinearProgressIndicator(),
+                                  );
+                                }
+
+                                if (snapshot.hasError) {
+                                  return Text(
+                                    'Failed to load categories: ${snapshot.error}',
+                                    style: const TextStyle(color: Colors.red),
+                                  );
+                                }
+
+                                final categories = snapshot.data ?? [];
+                                if (categories.isEmpty) {
+                                  return const InputDecorator(
+                                    decoration: InputDecoration(
+                                      labelText: 'Category *',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    child: Text('No categories available'),
+                                  );
+                                }
+
+                                if (selectedCategory == null ||
+                                    !categories.any(
+                                      (category) =>
+                                          category.id == selectedCategory!.id,
+                                    )) {
+                                  selectedCategory = categories.first;
+                                }
+
+                                final selectedCategoryId =
+                                    selectedCategory!.id.trim().isEmpty
+                                        ? null
+                                        : selectedCategory!.id;
+
+                                return DropdownButtonFormField<String>(
+                                  value: selectedCategoryId,
+                                  isExpanded: true,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Category *',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items:
+                                      categories
+                                          .map(
+                                            (category) =>
+                                                DropdownMenuItem<String>(
+                                                  value: category.id,
+                                                  child: Text(category.name),
+                                                ),
+                                          )
+                                          .toList(),
+                                  onChanged: (categoryId) {
+                                    if (categoryId == null) return;
+                                    final match = categories.firstWhere(
+                                      (category) => category.id == categoryId,
+                                    );
+                                    setState(() {
+                                      selectedCategory = match;
+                                    });
+                                  },
+                                );
+                              },
                             ),
                             const SizedBox(height: 12),
                             // Price & Currency
@@ -659,23 +758,61 @@ class _ProductsPageState extends State<ProductsPage> {
                                 ),
                                 const SizedBox(width: 8),
                                 ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    final messenger = ScaffoldMessenger.of(
+                                      this.context,
+                                    );
+                                    final navigator = Navigator.of(
+                                      this.context,
+                                      rootNavigator: true,
+                                    );
+
+                                    final baseName =
+                                        nameController.text.trim().isNotEmpty
+                                            ? nameController.text.trim()
+                                            : shortNameController.text.trim();
+                                    if (baseName.isEmpty) {
+                                      messenger.showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Please enter a product name.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    final generatedSlug = _slugify(baseName);
+                                    final slug =
+                                        generatedSlug.isNotEmpty
+                                            ? generatedSlug
+                                            : 'product-${DateTime.now().millisecondsSinceEpoch}';
+                                    final normalizedCurrency =
+                                        currencyController.text
+                                                .trim()
+                                                .toUpperCase()
+                                                .isNotEmpty
+                                            ? currencyController.text
+                                                .trim()
+                                                .toUpperCase()
+                                            : 'USD';
+
                                     final product = {
-                                      'name': nameController.text,
+                                      'name': baseName,
+                                      'slug': slug,
                                       'shortName': shortNameController.text,
-                                      'category': categoryController.text,
+                                      'category': selectedCategory?.name ?? '',
+                                      'categoryId': selectedCategory?.id ?? '',
                                       'price':
                                           double.tryParse(
                                             priceController.text,
                                           ) ??
                                           0,
-                                      'currency': currencyController.text,
+                                      'currency': normalizedCurrency,
                                       'unit': unitController.text,
                                       'availableUnits':
                                           int.tryParse(stockController.text) ??
                                           0,
-                                      'thumbnailBytes': thumbnailBytes,
-                                      'images': imageBytes,
                                       'sizes':
                                           sizesController.text
                                               .split(',')
@@ -683,14 +820,30 @@ class _ProductsPageState extends State<ProductsPage> {
                                               .where((e) => e.isNotEmpty)
                                               .toList(),
                                       'story': storyController.text,
-                                      'sizeGuideImageBytes':
-                                          sizeGuideImageBytes,
                                       'colorVariants': colorVariants,
                                     };
-                                    debugPrint(
-                                      'Adding product: ${product.toString()}',
-                                    );
-                                    Navigator.pop(ctx);
+                                    if (selectedCategory == null) {
+                                      messenger.showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Please select a category before saving.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    final ok = await context
+                                        .read<ProductController>()
+                                        .createProduct(
+                                          payload: product,
+                                          thumbnailBytes: thumbnailBytes,
+                                          imageBytes: imageBytes,
+                                          sizeGuideImageBytes:
+                                              sizeGuideImageBytes,
+                                        );
+                                    if (ok && mounted) {
+                                      navigator.pop();
+                                    }
                                   },
                                   child: const Text('Add Product'),
                                 ),
@@ -704,6 +857,41 @@ class _ProductsPageState extends State<ProductsPage> {
                 ),
           ),
     );
+  }
+
+  Future<List<Category>> _loadCurrentCategories() async {
+    final response = await ApiService.get('/api/categories');
+    final data =
+        response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final items =
+        data['items'] as List<dynamic>? ??
+        data['categories'] as List<dynamic>? ??
+        const <dynamic>[];
+
+    final categoriesById = <String, Category>{};
+
+    for (final item in items.whereType<Map>()) {
+      final raw = Map<String, dynamic>.from(item);
+      final category = Category.fromJson(raw);
+      final categoryId = category.id.trim();
+      final rawSlug = (raw['slug'] ?? '').toString().trim().toLowerCase();
+      final fallbackKey =
+          rawSlug.isNotEmpty ? rawSlug : category.name.trim().toLowerCase();
+      final categoryKey = categoryId.isNotEmpty ? categoryId : fallbackKey;
+
+      if (categoryKey.isEmpty) {
+        continue;
+      }
+
+      categoriesById.putIfAbsent(categoryKey, () => category);
+    }
+
+    final categories = categoriesById.values.toList();
+
+    categories.sort(
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
+    return categories;
   }
 
   Widget _buildColorVariantDialog(
@@ -837,10 +1025,13 @@ class _ProductsPageState extends State<ProductsPage> {
               ElevatedButton(
                 onPressed: () {
                   if (colorNameController.text.isEmpty ||
-                      colorHexController.text.isEmpty) {
+                      colorHexController.text.isEmpty ||
+                      variantImageBytes == null) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
                       const SnackBar(
-                        content: Text('Color name and hex code required'),
+                        content: Text(
+                          'Color name, hex code, and image are required',
+                        ),
                       ),
                     );
                     return;
@@ -849,8 +1040,7 @@ class _ProductsPageState extends State<ProductsPage> {
                     colorVariants.add({
                       'colorName': colorNameController.text,
                       'colorHex': colorHexController.text,
-                      'imageBytes': variantImageBytes ?? '',
-                      'imageFile': variantImageBytes,
+                      'image': _bytesToDataUri(variantImageBytes!),
                     });
                   });
                   Navigator.pop(ctx);
@@ -868,5 +1058,9 @@ class _ProductsPageState extends State<ProductsPage> {
       return Color(int.parse('0xff$hexColor'));
     }
     return Colors.black;
+  }
+
+  String _bytesToDataUri(Uint8List bytes, {String mimeType = 'image/png'}) {
+    return 'data:$mimeType;base64,${base64Encode(bytes)}';
   }
 }

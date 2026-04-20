@@ -22,9 +22,10 @@ class Homecontroller {
 
     try {
       final res = await ApiService().getCategories();
+      final data = res['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
       final items =
-          (res['data'] as Map<String, dynamic>?)?['categories']
-              as List<dynamic>? ??
+          data['items'] as List<dynamic>? ??
+          data['categories'] as List<dynamic>? ??
           <dynamic>[];
       final remote =
           items

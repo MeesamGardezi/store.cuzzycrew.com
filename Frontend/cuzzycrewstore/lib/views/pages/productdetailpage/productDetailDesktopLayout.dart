@@ -1,7 +1,9 @@
 import 'package:cuzzycrewstore/controller/cartController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/cartpage/cartPage.dart';
+import 'package:cuzzycrewstore/views/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cuzzycrewstore/controller/productDetailController.dart';
@@ -21,6 +23,17 @@ class _ProductDetailDesktopLayoutState
     extends State<ProductDetailDesktopLayout> {
   int _selectedImageIndex = 0;
 
+  bool _isColorDark(String hex) {
+    final cleaned = hex.replaceFirst('#', '');
+    if (cleaned.length < 6) return false;
+
+    final r = int.parse(cleaned.substring(0, 2), radix: 16);
+    final g = int.parse(cleaned.substring(2, 4), radix: 16);
+    final b = int.parse(cleaned.substring(4, 6), radix: 16);
+    final luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance < 0.5;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -33,68 +46,90 @@ class _ProductDetailDesktopLayoutState
     final baseWidth = width > 1440 ? 1440.0 : 1280.0;
     final scale = (width / baseWidth).clamp(0.85, 1.2);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final actionIconSize = DesignUtils.topBarActionIconSize(width);
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        backgroundColor:
+            isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        toolbarHeight: DesignUtils.topBarHeight,
+        titleSpacing: 0,
+        leadingWidth: 56,
+        shape: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            width: 1.5,
+          ),
+        ),
+        leading: IconButton(
+          iconSize: actionIconSize,
+          style: DesignUtils.topBarIconButtonStyle(isDark: isDark),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           widget.product.name,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontSize: 18 * scale),
+          style: DesignUtils.topBarTitleStyle(
+            isDark: isDark,
+            fontSize: 18 * scale,
+            letterSpacing: 1.1,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
           Consumer<CartController>(
             builder: (context, cartController, _) {
-              return Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: IconButton(
+              return Center(
+                child: Stack(
+                  children: [
+                    IconButton(
+                      iconSize: actionIconSize,
+                      style: DesignUtils.topBarIconButtonStyle(isDark: isDark),
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const CartPage()),
                         );
                       },
-                      icon: const Icon(Icons.shopping_cart_outlined, size: 28),
+                      icon: const Icon(Icons.shopping_cart_outlined),
                     ),
-                  ),
-                  if (cartController.itemCount > 0)
-                    Positioned(
-                      top: 4,
-                      right: 11,
-                      child: Container(
-                        width: 17,
-                        height: 17,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryAccent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '${cartController.itemCount}',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.labelSmall?.copyWith(
-                                color: AppColors.darkText,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 9 * scale,
-                                height: 1,
+                    if (cartController.itemCount > 0)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          width: 17,
+                          height: 17,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryAccent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '${cartController.itemCount}',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall?.copyWith(
+                                  color: AppColors.darkText,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 9 * scale,
+                                  height: 1,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               );
             },
           ),
@@ -143,12 +178,12 @@ class _ProductDetailDesktopLayoutState
                                           : Colors.transparent,
                                   width: 3 * scale,
                                 ),
-                                borderRadius: BorderRadius.circular(8 * scale),
+                                borderRadius: BorderRadius.zero,
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(6 * scale),
-                                child: Image.network(
-                                  images[idx],
+                                borderRadius: BorderRadius.zero,
+                                child: AdaptiveImage(
+                                  source: images[idx],
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -167,15 +202,15 @@ class _ProductDetailDesktopLayoutState
                         height: 500 * scale,
                         decoration: BoxDecoration(
                           color:
-                              Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12 * scale),
+                              isDark
+                                  ? AppColors.darkSurfaceAlt
+                                  : AppColors.slate50,
+                          borderRadius: BorderRadius.zero,
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12 * scale),
-                          child: Image.network(
-                            images[_selectedImageIndex],
+                          borderRadius: BorderRadius.zero,
+                          child: AdaptiveImage(
+                            source: images[_selectedImageIndex],
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -229,9 +264,7 @@ class _ProductDetailDesktopLayoutState
                                           Theme.of(
                                             context,
                                           ).colorScheme.secondaryContainer,
-                                      borderRadius: BorderRadius.circular(
-                                        4 * scale,
-                                      ),
+                                      borderRadius: BorderRadius.zero,
                                     ),
                                     child: Text(
                                       'NEW ARRIVAL',
@@ -310,9 +343,11 @@ class _ProductDetailDesktopLayoutState
                                                                     )
                                                                     .colorScheme
                                                                     .primary
-                                                                : Colors
-                                                                    .grey
-                                                                    .shade300,
+                                                                : (isDark
+                                                                    ? AppColors
+                                                                        .darkBorder
+                                                                    : AppColors
+                                                                        .lightBorder),
                                                         width:
                                                             isSelected
                                                                 ? 3 * scale
@@ -324,13 +359,14 @@ class _ProductDetailDesktopLayoutState
                                                             ? Icon(
                                                               Icons.check,
                                                               color:
-                                                                  variant.colorHex
-                                                                              .toLowerCase() ==
-                                                                          '#000000'
+                                                                  _isColorDark(
+                                                                        variant
+                                                                            .colorHex,
+                                                                      )
                                                                       ? Colors
                                                                           .white
-                                                                      : Colors
-                                                                          .black,
+                                                                      : AppColors
+                                                                          .ink950,
                                                               size: 24 * scale,
                                                             )
                                                             : null,
@@ -425,22 +461,24 @@ class _ProductDetailDesktopLayoutState
                                                           ? Theme.of(
                                                             context,
                                                           ).colorScheme.primary
-                                                          : Theme.of(context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest,
+                                                          : (isDark
+                                                              ? AppColors
+                                                                  .darkSurfaceAlt
+                                                              : AppColors
+                                                                  .slate50),
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                        6 * scale,
-                                                      ),
+                                                      BorderRadius.zero,
                                                   border: Border.all(
                                                     color:
                                                         isSelected
                                                             ? Theme.of(context)
                                                                 .colorScheme
                                                                 .primary
-                                                            : Colors
-                                                                .grey
-                                                                .shade300,
+                                                            : (isDark
+                                                                ? AppColors
+                                                                    .darkBorder
+                                                                : AppColors
+                                                                    .lightBorder),
                                                   ),
                                                 ),
                                                 child: Center(
@@ -496,11 +534,12 @@ class _ProductDetailDesktopLayoutState
                                   return Container(
                                     decoration: BoxDecoration(
                                       border: Border.all(
-                                        color: Colors.grey.shade300,
+                                        color:
+                                            isDark
+                                                ? AppColors.darkBorder
+                                                : AppColors.lightBorder,
                                       ),
-                                      borderRadius: BorderRadius.circular(
-                                        8 * scale,
-                                      ),
+                                      borderRadius: BorderRadius.zero,
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -572,7 +611,10 @@ class _ProductDetailDesktopLayoutState
                                   ).textTheme.bodySmall?.copyWith(
                                     fontSize: 14 * scale,
                                     height: 1.6,
-                                    color: Colors.grey.shade700,
+                                    color:
+                                        isDark
+                                            ? AppColors.slate400
+                                            : AppColors.mutedText,
                                   ),
                                 ),
                                 SizedBox(height: 28 * scale),
@@ -587,7 +629,9 @@ class _ProductDetailDesktopLayoutState
                               style: FilledButton.styleFrom(
                                 backgroundColor:
                                     widget.product.availableUnits <= 0
-                                        ? AppColors.darkText
+                                        ? (isDark
+                                            ? AppColors.darkSurfaceAlt
+                                            : AppColors.slate50)
                                         : Theme.of(context).colorScheme.primary,
                                 foregroundColor:
                                     Theme.of(context).colorScheme.onPrimary,
@@ -596,9 +640,7 @@ class _ProductDetailDesktopLayoutState
                                     .labelLarge
                                     ?.copyWith(fontSize: 16 * scale),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    8 * scale,
-                                  ),
+                                  borderRadius: BorderRadius.zero,
                                 ),
                               ),
                               onPressed:
@@ -637,7 +679,8 @@ class _ProductDetailDesktopLayoutState
                                             duration: const Duration(
                                               milliseconds: 1500,
                                             ),
-                                            backgroundColor: Colors.green,
+                                            backgroundColor:
+                                                AppColors.semanticSuccess,
                                           ),
                                         );
                                       },
@@ -651,9 +694,9 @@ class _ProductDetailDesktopLayoutState
                                   fontSize: 16 * scale,
                                   color:
                                       widget.product.availableUnits <= 0
-                                          ? (Brightness.dark == theme.brightness
-                                              ? AppColors.darkText
-                                              : AppColors.lightText)
+                                          ? (isDark
+                                              ? AppColors.slate400
+                                              : AppColors.mutedText)
                                           : null,
                                 ),
                               ),
@@ -691,9 +734,12 @@ class _ProductDetailDesktopLayoutState
           content: SingleChildScrollView(
             child:
                 product.sizeGuideImage.isNotEmpty
-                    ? Image.network(
-                      product.sizeGuideImage,
+                    ? SizedBox(
                       width: (width * 0.6).clamp(300, 600),
+                      child: AdaptiveImage(
+                        source: product.sizeGuideImage,
+                        fit: BoxFit.contain,
+                      ),
                     )
                     : Text(
                       'No size guide available',

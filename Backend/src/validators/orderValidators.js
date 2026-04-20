@@ -1,5 +1,34 @@
 const { z } = require('zod');
 
+const shippingAddressSchema = z.object({
+  fullName: z.string().min(1).max(200),
+  email: z.string().email().optional(),
+  phone: z.string().min(1).max(50),
+  street: z.string().min(1).max(200).optional(),
+  addressLine1: z.string().min(1).max(200).optional(),
+  city: z.string().min(1).max(100),
+  state: z.string().min(1).max(100).optional(),
+  zipCode: z.string().min(1).max(30).optional(),
+  postalCode: z.string().min(1).max(30).optional(),
+  country: z.string().min(1).max(2),
+}).superRefine((value, ctx) => {
+  if (!value.street && !value.addressLine1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['street'],
+      message: 'Street is required',
+    });
+  }
+
+  if (!value.zipCode && !value.postalCode) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['zipCode'],
+      message: 'Zip code is required',
+    });
+  }
+});
+
 const createOrderSchema = z.object({
   headers: z.object({
     'idempotency-key': z.string().min(8).max(200).optional(),
@@ -16,14 +45,7 @@ const createOrderSchema = z.object({
       )
       .min(1),
     currency: z.string().min(1).max(10).default('USD'),
-    shippingAddress: z.object({
-      fullName: z.string().min(1).max(200),
-      phone: z.string().min(1).max(50),
-      addressLine1: z.string().min(1).max(200),
-      city: z.string().min(1).max(100),
-      postalCode: z.string().min(1).max(30),
-      country: z.string().min(1).max(2),
-    }),
+    shippingAddress: shippingAddressSchema,
   }).passthrough(),
 });
 

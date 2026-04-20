@@ -24,7 +24,7 @@ async function create({ cartId, userId, sessionToken, nowIso }) {
     sessionToken: sessionToken || null,
     status: 'ACTIVE',
     couponCode: null,
-    currency: 'usd',
+    currency: 'USD',
     subtotal: 0,
     discountTotal: 0,
     total: 0,

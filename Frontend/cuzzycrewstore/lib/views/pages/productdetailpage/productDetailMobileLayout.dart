@@ -1,7 +1,9 @@
 import 'package:cuzzycrewstore/controller/cartController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/cartpage/cartPage.dart';
+import 'package:cuzzycrewstore/views/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cuzzycrewstore/controller/productDetailController.dart';
@@ -21,6 +23,17 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
   late PageController _pageController;
   int _selectedImageIndex = 0;
 
+  bool _isColorDark(String hex) {
+    final cleaned = hex.replaceFirst('#', '');
+    if (cleaned.length < 6) return false;
+
+    final r = int.parse(cleaned.substring(0, 2), radix: 16);
+    final g = int.parse(cleaned.substring(2, 4), radix: 16);
+    final b = int.parse(cleaned.substring(4, 6), radix: 16);
+    final luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance < 0.5;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -39,70 +52,81 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
     final width = size.width;
     final scale = (width / 375).clamp(0.85, 1.15);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final actionIconSize = DesignUtils.topBarActionIconSize(width);
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        backgroundColor:
+            isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        toolbarHeight: DesignUtils.topBarHeight,
+        titleSpacing: 0,
+        leadingWidth: 56,
+        shape: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            width: 1.5,
+          ),
+        ),
         leading: IconButton(
+          iconSize: actionIconSize,
+          style: DesignUtils.topBarIconButtonStyle(isDark: isDark),
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           Consumer<CartController>(
             builder: (context, cartController, _) {
-              return Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12,top : 4),
-                    child:
-                      Center(
-                        child: IconButton(
-                          icon: const Icon(Icons.shopping_cart_outlined, size: 28),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const CartPage()),
-                            );
-                          },
-                        ),
-                      ),
-                    
-                  ),
+              return Center(
+                child: Stack(
+                  children: [
+                    IconButton(
+                      iconSize: actionIconSize,
+                      style: DesignUtils.topBarIconButtonStyle(isDark: isDark),
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CartPage()),
+                        );
+                      },
+                    ),
 
-                  if (cartController.itemCount > 0)
-                    Positioned(
-                      top: 12,
-                      right: 13,
-                      child: Container(
-                        width: 16,
-                        height: 16,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryAccent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '${cartController.itemCount}',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
-                                  ?.copyWith(
-                                    color: AppColors.darkText,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 9 * scale,
-                                    height: 1,
-                                  ),
+                    if (cartController.itemCount > 0)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primaryAccent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '${cartController.itemCount}',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall?.copyWith(
+                                  color: AppColors.darkText,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 9 * scale,
+                                  height: 1,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               );
             },
           ),
@@ -126,9 +150,9 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                     if (images.isEmpty) {
                       return Container(
                         color:
-                            Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
+                            isDark
+                                ? AppColors.darkSurfaceAlt
+                                : AppColors.slate50,
                         child: Center(
                           child: Icon(
                             Icons.image_not_supported,
@@ -148,8 +172,11 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                       },
                       itemBuilder: (context, idx) {
                         return ClipRRect(
-                          borderRadius: BorderRadius.circular(12 * scale),
-                          child: Image.network(images[idx], fit: BoxFit.cover),
+                          borderRadius: BorderRadius.zero,
+                          child: AdaptiveImage(
+                            source: images[idx],
+                            fit: BoxFit.cover,
+                          ),
                         );
                       },
                     );
@@ -191,12 +218,12 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                                         : Colors.transparent,
                                 width: 2 * scale,
                               ),
-                              borderRadius: BorderRadius.circular(8 * scale),
+                              borderRadius: BorderRadius.zero,
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(6 * scale),
-                              child: Image.network(
-                                images[idx],
+                              borderRadius: BorderRadius.zero,
+                              child: AdaptiveImage(
+                                source: images[idx],
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -249,7 +276,7 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                                   Theme.of(
                                     context,
                                   ).colorScheme.secondaryContainer,
-                              borderRadius: BorderRadius.circular(4 * scale),
+                              borderRadius: BorderRadius.zero,
                             ),
                             child: Text(
                               'NEW',
@@ -319,7 +346,9 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                                                 ? Theme.of(
                                                   context,
                                                 ).colorScheme.primary
-                                                : Colors.grey.shade400,
+                                                : (isDark
+                                                    ? AppColors.darkBorder
+                                                    : AppColors.lightBorder),
                                         width:
                                             isSelected ? 3 * scale : 1 * scale,
                                       ),
@@ -329,11 +358,9 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                                             ? Icon(
                                               Icons.check,
                                               color:
-                                                  variant.colorHex
-                                                              .toLowerCase() ==
-                                                          '#000000'
+                                                  _isColorDark(variant.colorHex)
                                                       ? Colors.white
-                                                      : Colors.black,
+                                                      : AppColors.ink950,
                                               size: 20 * scale,
                                             )
                                             : null,
@@ -405,19 +432,19 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                                               ? Theme.of(
                                                 context,
                                               ).colorScheme.primary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .surfaceContainerHighest,
-                                      borderRadius: BorderRadius.circular(
-                                        6 * scale,
-                                      ),
+                                              : (isDark
+                                                  ? AppColors.darkSurfaceAlt
+                                                  : AppColors.slate50),
+                                      borderRadius: BorderRadius.zero,
                                       border: Border.all(
                                         color:
                                             isSelected
                                                 ? Theme.of(
                                                   context,
                                                 ).colorScheme.primary
-                                                : Colors.grey.shade300,
+                                                : (isDark
+                                                    ? AppColors.darkBorder
+                                                    : AppColors.lightBorder),
                                       ),
                                     ),
                                     child: Center(
@@ -468,8 +495,13 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                     builder: (context, controller, _) {
                       return Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(6 * scale),
+                          border: Border.all(
+                            color:
+                                isDark
+                                    ? AppColors.darkBorder
+                                    : AppColors.lightBorder,
+                          ),
+                          borderRadius: BorderRadius.zero,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -533,7 +565,8 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontSize: 13 * scale,
                         height: 1.6,
-                        color: Colors.grey.shade700,
+                        color:
+                            isDark ? AppColors.slate400 : AppColors.mutedText,
                       ),
                     ),
                     SizedBox(height: 24 * scale),
@@ -574,17 +607,19 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                                   '${widget.product.name} added to cart!',
                                 ),
                                 duration: const Duration(milliseconds: 1500),
-                                backgroundColor: Colors.green,
+                                backgroundColor: AppColors.semanticSuccess,
                               ),
                             );
                           },
                   style: FilledButton.styleFrom(
                     backgroundColor:
                         widget.product.availableUnits <= 0
-                            ? AppColors.darkText
+                            ? (isDark
+                                ? AppColors.darkSurfaceAlt
+                                : AppColors.slate50)
                             : Theme.of(context).colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8 * scale),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
                     ),
                   ),
                   child: Text(
@@ -595,9 +630,9 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
                       fontSize: 15 * scale,
                       color:
                           widget.product.availableUnits <= 0
-                              ? (Brightness.dark == theme.brightness
-                                  ? AppColors.darkText
-                                  : AppColors.lightText)
+                              ? (isDark
+                                  ? AppColors.slate400
+                                  : AppColors.mutedText)
                               : null,
                     ),
                   ),
@@ -626,9 +661,12 @@ class _ProductDetailMobileLayoutState extends State<ProductDetailMobileLayout> {
           content: SingleChildScrollView(
             child:
                 widget.product.sizeGuideImage.isNotEmpty
-                    ? Image.network(
-                      widget.product.sizeGuideImage,
+                    ? SizedBox(
                       width: (width * 0.8).clamp(250, 400),
+                      child: AdaptiveImage(
+                        source: widget.product.sizeGuideImage,
+                        fit: BoxFit.contain,
+                      ),
                     )
                     : Text(
                       'No size guide available',

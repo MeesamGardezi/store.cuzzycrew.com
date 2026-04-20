@@ -1,8 +1,10 @@
 import 'package:cuzzycrewstore/controller/shopController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/productdetailpage/productDetailPage.dart';
 import 'package:cuzzycrewstore/views/widgets/shopProductCard.dart';
+import 'package:cuzzycrewstore/views/widgets/store_footer.dart';
 import 'package:flutter/material.dart';
 
 class ShopPage extends StatefulWidget {
@@ -44,6 +46,7 @@ class _ShopPageState extends State<ShopPage> {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 640;
     final isTablet = width >= 640 && width < 1024;
+    final pagePadding = DesignUtils.pagePadding(width);
 
     final int perPage = isMobile ? 4 : (isTablet ? 4 : 6);
     _controller.updateItemsPerPage(perPage);
@@ -54,31 +57,44 @@ class _ShopPageState extends State<ShopPage> {
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
           body: SafeArea(
+            top: false,
+            bottom: false,
             child:
                 _controller.isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : Column(
-                      children: [
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isMobile ? 12 : 20,
-                                vertical: isMobile ? 12 : 20,
-                              ),
-                              child:
-                                  isMobile
-                                      ? _ShopMobileLayout(
-                                        controller: _controller,
-                                      )
-                                      : _ShopWideLayout(
-                                        controller: _controller,
-                                        isTablet: isTablet,
-                                      ),
+                    : LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.fromLTRB(
+                                    pagePadding.left,
+                                    isMobile ? 12 : 20,
+                                    pagePadding.right,
+                                    isMobile ? 12 : 20,
+                                  ),
+                                  child:
+                                      isMobile
+                                          ? _ShopMobileLayout(
+                                            controller: _controller,
+                                          )
+                                          : _ShopWideLayout(
+                                            controller: _controller,
+                                            isTablet: isTablet,
+                                          ),
+                                ),
+                                const StoreFooter(),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
           ),
         );
@@ -264,85 +280,88 @@ class _ShopHeader extends StatelessWidget {
             ? (width / 390).clamp(0.9, 1.2)
             : (width / 1280).clamp(0.9, 1.2);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          ShopController.shopHeading(controller.selectedCategory),
-          style: textTheme.displayLarge?.copyWith(
-            color: bodyColor,
-            fontWeight: FontWeight.w700,
-            fontSize: isMobile ? 44 : (width < 1024 ? 62 : 72),
-            letterSpacing: 0.2,
-            height: 0.92,
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            ShopController.shopHeading(controller.selectedCategory),
+            style: textTheme.displayLarge?.copyWith(
+              color: bodyColor,
+              fontWeight: FontWeight.w700,
+              fontSize: isMobile ? 40 : (width < 1024 ? 58 : 68),
+              letterSpacing: 0.2,
+              height: 0.92,
+            ),
           ),
-        ),
-        SizedBox(height: 4 * scale),
-        if (isMobile)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    '${controller.totalItemCount} ITEMS TOTAL',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: AppColors.primaryAccent,
-                      letterSpacing: 1.0,
-                      fontSize: 9.5 * scale,
-                      fontWeight: FontWeight.w600,
+          SizedBox(height: 4 * scale),
+          if (isMobile)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '${controller.totalItemCount} ITEMS TOTAL',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.primaryAccent,
+                        letterSpacing: 1.0,
+                        fontSize: 9.5 * scale,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 6 * scale),
-                  Text(
-                    '/ EST. 2024',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: bodyColor,
-                      letterSpacing: 1.0,
-                      fontSize: 9.5 * scale,
+                    SizedBox(width: 6 * scale),
+                    Text(
+                      '/ EST. 2024',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: bodyColor,
+                        letterSpacing: 1.0,
+                        fontSize: 9.5 * scale,
+                      ),
                     ),
+                  ],
+                ),
+                SizedBox(height: 8 * scale),
+                Row(
+                  children: [
+                    _SortDropdown(controller: controller),
+                    SizedBox(width: 8 * scale),
+                    _FilterButton(onTap: onOpenFilters),
+                  ],
+                ),
+              ],
+            )
+          else
+            Row(
+              children: [
+                Text(
+                  '${controller.totalItemCount} ITEMS TOTAL',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.primaryAccent,
+                    letterSpacing: 1.0,
+                    fontSize: 15 * scale,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ),
-              SizedBox(height: 8 * scale),
-              Row(
-                children: [
-                  _SortDropdown(controller: controller),
-                  SizedBox(width: 8 * scale),
-                  _FilterButton(onTap: onOpenFilters),
-                ],
-              ),
-            ],
-          )
-        else
-          Row(
-            children: [
-              Text(
-                '${controller.totalItemCount} ITEMS TOTAL',
-                style: textTheme.bodySmall?.copyWith(
-                  color: AppColors.primaryAccent,
-                  letterSpacing: 1.0,
-                  fontSize: 15 * scale,
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
-              SizedBox(width: 6 * scale),
-              Text(
-                '/ EST. 2024',
-                style: textTheme.bodySmall?.copyWith(
-                  color: bodyColor,
-                  letterSpacing: 1.0,
-                  fontSize: 15 * scale,
+                SizedBox(width: 6 * scale),
+                Text(
+                  '/ EST. 2024',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: bodyColor,
+                    letterSpacing: 1.0,
+                    fontSize: 15 * scale,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              _SortDropdown(controller: controller),
-            ],
-          ),
-        SizedBox(height: 14 * scale),
-        Divider(color: theme.dividerColor, height: 1),
-      ],
+                const Spacer(),
+                _SortDropdown(controller: controller),
+              ],
+            ),
+          SizedBox(height: 14 * scale),
+          Divider(color: theme.dividerColor, height: 1),
+        ],
+      ),
     );
   }
 }
@@ -534,7 +553,11 @@ class _MobileFilterSidebarState extends State<_MobileFilterSidebar> {
         child: Container(
           width: sheetWidth,
           height: double.infinity,
-          color: theme.scaffoldBackgroundColor,
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            border: Border.all(color: colorScheme.outline, width: 2),
+            boxShadow: DesignUtils.hardShadow(isDark: isDark),
+          ),
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -648,7 +671,7 @@ class _MobileFilterSidebarState extends State<_MobileFilterSidebar> {
                                     .withValues(alpha: 0.45),
                                 thumbColor: AppColors.primaryAccent,
                                 overlayColor: AppColors.primaryAccent
-                                    .withOpacity(0.15),
+                                    .withValues(alpha: 0.15),
                                 trackHeight: 2.5,
                               ),
                               child: RangeSlider(
@@ -715,7 +738,6 @@ class _MobileFilterSidebarState extends State<_MobileFilterSidebar> {
                                         width: 20,
                                         height: 20,
                                         decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
                                           color: _safeColor(hex),
                                           border: Border.all(
                                             color:
@@ -768,7 +790,7 @@ class _MobileFilterSidebarState extends State<_MobileFilterSidebar> {
                                           color:
                                               isSelected
                                                   ? AppColors.primaryAccent
-                                                      .withOpacity(0.14)
+                                                      .withValues(alpha: 0.14)
                                                   : Colors.transparent,
                                           border: Border.all(
                                             color:
@@ -930,7 +952,7 @@ class _ShopSidebar extends StatelessWidget {
               activeTrackColor: AppColors.primaryAccent,
               inactiveTrackColor: colorScheme.outline.withValues(alpha: 0.45),
               thumbColor: AppColors.primaryAccent,
-              overlayColor: AppColors.primaryAccent.withOpacity(0.15),
+              overlayColor: AppColors.primaryAccent.withValues(alpha: 0.15),
               trackHeight: 2.5,
             ),
             child: RangeSlider(
@@ -980,7 +1002,6 @@ class _ShopSidebar extends StatelessWidget {
                       width: 20,
                       height: 20,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
                         color: _safeColor(hex),
                         border: Border.all(
                           color:
@@ -1020,7 +1041,9 @@ class _ShopSidebar extends StatelessWidget {
                           decoration: BoxDecoration(
                             color:
                                 isSelected
-                                    ? AppColors.primaryAccent.withOpacity(0.14)
+                                    ? AppColors.primaryAccent.withValues(
+                                      alpha: 0.14,
+                                    )
                                     : Colors.transparent,
                             border: Border.all(
                               color:

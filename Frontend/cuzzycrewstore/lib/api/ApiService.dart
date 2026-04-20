@@ -20,10 +20,19 @@ class ApiService {
     return headers;
   }
 
-  Uri _uri(String path) => Uri.parse('$baseUrl$path');
+  Uri _uri(String path) {
+    final normalizedBase =
+        baseUrl.endsWith('/')
+            ? baseUrl.substring(0, baseUrl.length - 1)
+            : baseUrl;
+    final normalizedPath = path.startsWith('/') ? path : '/$path';
+    return Uri.parse('$normalizedBase$normalizedPath');
+  }
 
   Future<Map<String, dynamic>> createOrder({
-    required String shippingAddressId,
+    required List<Map<String, dynamic>> items,
+    required String currency,
+    required Map<String, dynamic> shippingAddress,
     required String idempotencyKey,
   }) async {
     final uri = _uri(ApiConstants.createOrder);
@@ -34,7 +43,11 @@ class ApiService {
       final response = await _client.post(
         uri,
         headers: _headers(extra: {'Idempotency-Key': idempotencyKey}),
-        body: jsonEncode({'shippingAddressId': shippingAddressId}),
+        body: jsonEncode({
+          'items': items,
+          'currency': currency,
+          'shippingAddress': shippingAddress,
+        }),
       );
       stopwatch.stop();
 
@@ -51,10 +64,11 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> createPaymentIntent({
+  Future<Map<String, dynamic>> createCheckout({
     required String orderId,
+    required String orderToken,
   }) async {
-    final uri = _uri(ApiConstants.paymentIntent);
+    final uri = _uri(ApiConstants.createCheckout);
     debugPrint('🔵 [API] POST ${uri.toString()}');
     final stopwatch = Stopwatch()..start();
 
@@ -62,7 +76,7 @@ class ApiService {
       final response = await _client.post(
         uri,
         headers: _headers(),
-        body: jsonEncode({'orderId': orderId}),
+        body: jsonEncode({'orderId': orderId, 'orderToken': orderToken}),
       );
       stopwatch.stop();
 
@@ -79,15 +93,32 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> simulatePaymentSuccess({
+    required String orderId,
+    required String orderToken,
+  }) async {
+    final uri = _uri(ApiConstants.simulatePaymentSuccess);
+    final response = await _client.post(
+      uri,
+      headers: _headers(),
+      body: jsonEncode({'orderId': orderId, 'orderToken': orderToken}),
+    );
+    return _parseJsonResponse(response);
+  }
+
   Future<Map<String, dynamic>> getPaymentStatus({
     required String orderId,
+    required String orderToken,
   }) async {
     final uri = _uri(ApiConstants.paymentStatus(orderId));
     debugPrint('🔵 [API] GET ${uri.toString()}');
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await _client.get(uri, headers: _headers());
+      final response = await _client.get(
+        uri,
+        headers: _headers(extra: {'x-order-token': orderToken}),
+      );
       stopwatch.stop();
 
       debugPrint(
@@ -130,7 +161,16 @@ class ApiService {
     String? cursor,
     String? category,
   }) async {
-    final uri = Uri.parse('$baseUrl${ApiConstants.AllProductFetch}');
+    final queryParams = <String, String>{'limit': '$limit'};
+    if (cursor != null && cursor.isNotEmpty) {
+      queryParams['cursor'] = cursor;
+    }
+    if (category != null && category.isNotEmpty) {
+      queryParams['category'] = category;
+    }
+
+    final baseUri = _uri(ApiConstants.AllProductFetch);
+    final uri = baseUri.replace(queryParameters: queryParams);
     debugPrint('🔵 [API] GET ${uri.toString()}');
     final stopwatch = Stopwatch()..start();
 

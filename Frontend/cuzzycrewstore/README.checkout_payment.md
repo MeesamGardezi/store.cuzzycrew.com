@@ -1,82 +1,34 @@
-# Checkout & Payment Flow (Stripe Integration)
+# Checkout & Payment Flow (Paddle)
 
-This document explains the checkout and payment flow in the Flutter app, including how Stripe is integrated via the backend. It covers the user experience, data flow, and key files involved.
-
----
+This document covers the storefront checkout flow after migrating away from Stripe. The app creates an order, opens a hosted Paddle checkout URL, then polls the backend until the payment is final.
 
 ## Overview
-- **No login/signup required**: All product and category APIs are public.
-- **Stripe integration**: Payments are handled via Stripe, but the user never sees Stripe UI directly in the app (future handoff possible).
-- **Order and payment logic**: Managed by the backend and coordinated in the app via `OrderController` and `ApiService`.
-
----
+- Checkout is guest-friendly and uses an order access token instead of login.
+- The backend owns order creation, checkout URL generation, and Paddle webhook verification.
+- The app only opens the hosted checkout and polls payment status with retry/backoff.
 
 ## User Flow
-1. **User adds items to cart**
-2. **User proceeds to checkout**
-3. **User enters shipping details**
-4. **User taps 'Place Order'**
-5. **App creates order via backend API**
-6. **Backend creates Stripe session/payment intent**
-7. **App receives order/payment info from backend**
-8. **(TODO) Stripe UI handoff for payment**
-9. **App polls backend for payment status**
-10. **User is shown success/failure page**
-
----
+1. User adds items to cart.
+2. User enters shipping details.
+3. The app calls `POST /api/orders` with cart items and the mapped shipping address.
+4. The backend returns an order plus an `orderToken`.
+5. The app calls `POST /api/payments/checkout`.
+6. The backend returns a hosted Paddle checkout URL.
+7. The app opens the URL externally.
+8. After return, the app polls `GET /api/payments/:orderId/status` with `x-order-token`.
+9. The order finishes as paid or failed.
 
 ## Data Flow
-- **OrderModel**: Represents all order/payment fields (id, stripeSessionId, paymentIntentId, paymentStatus, currency, subtotal, tax, shippingCost, total, items, shippingAddress, createdAt)
-- **OrderController**: Handles order creation, payment intent, Stripe handoff (TODO), and status polling
-- **ApiService**: Handles HTTP requests to backend (no auth required)
-
----
+- `OrderModel`: Stores the canonical order status, payment status, payment provider, processed flags, totals, and token.
+- `OrderController`: Builds the order payload, launches hosted checkout, and polls payment status.
+- `ApiService`: Sends backend requests and includes the order token when polling payment status.
 
 ## Key Files
-- `lib/model/orderModel.dart`: Order data structure
-- `lib/controller/orderController.dart`: Checkout/payment logic
-- `lib/views/pages/checkoutpage/checkoutPage.dart`: Checkout UI
-- `lib/views/pages/orderpage/orderSuccessPage.dart`: Success UI
-- `lib/views/pages/orderpage/orderFailurePage.dart`: Failure UI
-- `lib/api/ApiService.dart`: HTTP API calls
-
----
-
-## Stripe Integration Details
-- **Backend**: Handles all Stripe logic (session/payment intent creation, webhook for payment status)
-- **Frontend**: Only interacts with backend endpoints, never with Stripe directly
-- **Payment Status**: App polls backend for payment result after order is placed
-- **Future**: Stripe UI handoff (e.g., webview or native Stripe SDK) can be added in `OrderController` where marked as TODO
-
----
-
-## Sequence Diagram
-
-```
-User -> App: Place Order
-App -> Backend: POST /orders (with cart, shipping)
-Backend -> Stripe: Create PaymentIntent/Session
-Backend -> App: Return order info (incl. Stripe IDs)
-App: (TODO) Handoff to Stripe UI for payment
-App -> Backend: Poll payment status
-Backend -> Stripe: Check payment status
-Backend -> App: Return payment status
-App: Show success/failure page
-```
-
----
+- `lib/model/orderModel.dart`
+- `lib/controller/orderController.dart`
+- `lib/views/pages/checkoutpage/checkoutPage.dart`
+- `lib/api/ApiService.dart`
 
 ## Notes
-- All API endpoints are public (no auth)
-- Product/category data is local for now; API fetch code is commented for future use
-- Stripe UI handoff is a planned enhancement (see `OrderController`)
-
----
-
-## How to Extend
-- To enable Stripe UI handoff, implement the TODO in `OrderController`
-- To switch product/category to API, uncomment API fetch code in controllers
-
----
-
-For questions, see the code comments in the files above or ask the maintainers.
+- Totals from the backend are treated as minor units and converted to major units for display.
+- The app never talks to Paddle directly; only the backend handles webhook verification and payment state.

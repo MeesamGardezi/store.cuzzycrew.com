@@ -36,7 +36,7 @@ This folder contains the Node.js/Express backend using a layered architecture:
 - `src/repositories` (Firestore data access)
 - `src/middleware` (auth, validation, etc.)
 - `src/validators` (Zod request schemas)
-- `src/config` (env + firebase + stripe)
+- `src/config` (env + firebase)
 - `src/utils` (helpers)
 
 ## Dependencies
@@ -54,7 +54,7 @@ This folder contains the Node.js/Express backend using a layered architecture:
 - `multer`
 - `pino`
 - `pino-http`
-- `stripe`
+- `paddle`
 - `uuid`
 - `zod`
 
@@ -67,7 +67,7 @@ All APIs are served under the `/api` prefix.
 ## Requirements
 - Node.js
 - Firebase project with Firestore enabled
-- Stripe account (only test template endpoints are added)
+- Paddle account and notification destination for webhooks
 
 ## Install & Run
 
@@ -89,8 +89,10 @@ Copy the example file and fill in secrets:
 ### Required variables
 - `JWT_ACCESS_SECRET` (min 20 chars)
 - `JWT_REFRESH_SECRET` (min 20 chars)
-- `STRIPE_SECRET_KEY`
-- `STRIPE_WEBHOOK_SECRET`
+- `PADDLE_API_KEY`
+- `PADDLE_WEBHOOK_SECRET`
+- `PADDLE_CHECKOUT_URL`
+- `PADDLE_RETURN_URL`
 
 ### Common variables
 - `NODE_ENV` (`development` | `test` | `production`)
@@ -435,20 +437,13 @@ Cancels an order if its status is `PENDING_PAYMENT`.
 Auth:
 - Required
 
-### Payments (Stripe)
+### Payments (Paddle)
 
-- `POST /api/payments/intent`
+- `POST /api/payments/checkout`
 - `POST /api/payments/webhook`
 - `GET /api/payments/:orderId/status`
 
-Note: These endpoints exist in the codebase; the project may use a template or stubbed Stripe flow depending on the current implementation.
-
-### Checkout session + webhook (template)
-
-- `POST /api/create-checkout-session`
-- `POST /api/webhook`
-
-Note: These are mounted under `/api` if `checkoutSessionRoutes` and `stripeWebhookRoutes` are present.
+Note: The checkout endpoint returns a hosted Paddle URL plus order metadata. Webhooks are verified with `Paddle-Signature`.
 
 ### Admin (ADMIN role)
 
@@ -488,8 +483,10 @@ Set these for the Vercel project (Production recommended):
 - `CORS_ORIGIN=<your frontend URL>`
 - `JWT_ACCESS_SECRET` (min 20)
 - `JWT_REFRESH_SECRET` (min 20)
-- `STRIPE_SECRET_KEY` (min 10)
-- `STRIPE_WEBHOOK_SECRET` (min 10)
+- `PADDLE_API_KEY`
+- `PADDLE_WEBHOOK_SECRET`
+- `PADDLE_CHECKOUT_URL`
+- `PADDLE_RETURN_URL`
 - `FIREBASE_PROJECT_ID=<project id>`
 - `FIREBASE_SERVICE_ACCOUNT_JSON=<full JSON string>`
 

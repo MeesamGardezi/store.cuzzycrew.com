@@ -44,7 +44,11 @@ class FirebaseStorageService extends StorageService {
 
   generatePublicUrl({ key }) {
     const bucket = this._bucket();
-    return `https://storage.googleapis.com/${bucket.name}/${encodeURIComponent(key)}`;
+    const normalizedKey = String(key || '')
+      .split('/')
+      .map((segment) => encodeURIComponent(segment))
+      .join('/');
+    return `https://storage.googleapis.com/${bucket.name}/${normalizedKey}`;
   }
 }
 
@@ -59,7 +63,11 @@ class MockStorageService extends StorageService {
   }
 
   generatePublicUrl({ key }) {
-    return `https://mock-storage.local/${encodeURIComponent(key)}`;
+    const normalizedKey = String(key || '')
+      .split('/')
+      .map((segment) => encodeURIComponent(segment))
+      .join('/');
+    return `https://mock-storage.local/${normalizedKey}`;
   }
 }
 

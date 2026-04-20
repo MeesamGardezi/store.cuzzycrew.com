@@ -5,18 +5,21 @@ function paymentsCol() {
 }
 
 function webhookEventsCol() {
-  return getDb().collection('stripeWebhookEvents');
+  return getDb().collection('paymentWebhookEvents');
 }
 
-async function upsertForOrder({ orderId, stripePaymentIntentId, status, amount, currency, nowIso }) {
+async function upsertForOrder({ orderId, provider, providerTransactionId, status, amount, currency, checkoutUrl, metadata, nowIso }) {
   const snap = await paymentsCol().where('orderId', '==', orderId).limit(1).get();
   if (snap.empty) {
     await paymentsCol().doc().create({
       orderId,
-      stripePaymentIntentId,
+      provider,
+      providerTransactionId: providerTransactionId || null,
       status,
       amount,
       currency,
+      checkoutUrl: checkoutUrl || null,
+      metadata: metadata || null,
       createdAt: nowIso,
       updatedAt: nowIso,
     });
@@ -25,10 +28,13 @@ async function upsertForOrder({ orderId, stripePaymentIntentId, status, amount, 
 
   await snap.docs[0].ref.set(
     {
-      stripePaymentIntentId,
+      provider,
+      providerTransactionId: providerTransactionId || null,
       status,
       amount,
       currency,
+      checkoutUrl: checkoutUrl || null,
+      metadata: metadata || null,
       updatedAt: nowIso,
     },
     { merge: true }
@@ -46,7 +52,7 @@ async function markWebhookEventProcessed({ eventId, nowIso }) {
   const ref = webhookEventsCol().doc(eventId);
   const doc = await ref.get();
   if (doc.exists) return false;
-  await ref.create({ processedAt: nowIso });
+  await ref.create({ eventId, processedAt: nowIso });
   return true;
 }
 

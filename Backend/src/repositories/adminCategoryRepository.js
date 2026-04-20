@@ -11,7 +11,7 @@ function uniqueCategorySlugDoc(slug) {
 async function getById(id) {
   const doc = await categoriesCol().doc(id).get();
   if (!doc.exists) return null;
-  return { id: doc.id, ...doc.data() };
+  return { ...doc.data(), id: doc.id };
 }
 
 async function createCategory({ categoryId, data, nowIso }) {

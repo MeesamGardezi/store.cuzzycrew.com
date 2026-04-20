@@ -1,6 +1,7 @@
 import 'package:cuzzycrewstore/model/orderModel.dart';
 import 'package:cuzzycrewstore/navigation/core/navWrapperController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/track_order_page.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,35 @@ class OrderSuccessPage extends StatelessWidget {
     return Scaffold(
       backgroundColor:
           isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      appBar: AppBar(
+        backgroundColor:
+            isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        toolbarHeight: DesignUtils.topBarHeight,
+        titleSpacing: 0,
+        leadingWidth: 56,
+        shape: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            width: 1.5,
+          ),
+        ),
+        leading: IconButton(
+          style: DesignUtils.topBarIconButtonStyle(isDark: isDark),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'ORDER STATUS',
+          style: DesignUtils.topBarTitleStyle(
+            isDark: isDark,
+            fontSize: isMobile ? 18 : (isTablet ? 20 : 22),
+            letterSpacing: 1.4,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(sectionPadding),
@@ -33,7 +63,7 @@ class OrderSuccessPage extends StatelessWidget {
               padding: EdgeInsets.all(sectionPadding),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.zero,
                 border: Border.all(
                   color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                 ),
@@ -72,7 +102,7 @@ class OrderSuccessPage extends StatelessWidget {
                       foregroundColor: AppColors.darkText,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.zero,
                       ),
                     ),
                     onPressed: () {
@@ -98,7 +128,7 @@ class OrderSuccessPage extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.zero,
                       ),
                     ),
                     onPressed: () {
@@ -142,7 +172,7 @@ class _OrderSummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.zero,
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),

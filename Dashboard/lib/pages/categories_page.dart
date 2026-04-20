@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import '../controllers/product_controller.dart';
+import 'product_detail_page.dart';
 
 class CategoriesPage extends StatefulWidget {
   const CategoriesPage({Key? key}) : super(key: key);
@@ -83,29 +85,16 @@ class _CategoriesPageState extends State<CategoriesPage> {
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CategoryDetailPage(category: category),
+                      ),
+                    );
+                  },
                   leading:
                       category.thumbnail.isNotEmpty
-                          ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              category.thumbnail,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (_, __, ___) => Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.image_not_supported,
-                                    ),
-                                  ),
-                            ),
-                          )
+                          ? _CategoryThumbnail(imageUrl: category.thumbnail)
                           : Container(
                             width: 60,
                             height: 60,
@@ -362,9 +351,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                 ),
                                 const SizedBox(width: 8),
                                 ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     final category = {
-                                      'thumbnailBytes': thumbnailBytes ?? '',
                                       'name': nameController.text,
                                       'slug': nameController.text
                                           .toLowerCase()
@@ -384,10 +372,15 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                               .where((e) => e.isNotEmpty)
                                               .toList(),
                                     };
-                                    debugPrint(
-                                      'Adding category: ${category.toString()}',
-                                    );
-                                    Navigator.pop(ctx);
+                                    final ok = await context
+                                        .read<ProductController>()
+                                        .createCategory(
+                                          payload: category,
+                                          thumbnailBytes: thumbnailBytes,
+                                        );
+                                    if (ok && mounted) {
+                                      Navigator.of(ctx).pop();
+                                    }
                                   },
                                   child: const Text('Add Category'),
                                 ),
@@ -400,6 +393,53 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   ),
                 ),
           ),
+    );
+  }
+}
+
+class _CategoryThumbnail extends StatelessWidget {
+  const _CategoryThumbnail({required this.imageUrl});
+
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl.startsWith('data:image/')) {
+      final commaIndex = imageUrl.indexOf(',');
+      if (commaIndex > 0) {
+        try {
+          final bytes = base64Decode(imageUrl.substring(commaIndex + 1));
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.memory(
+              bytes,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+            ),
+          );
+        } catch (_) {}
+      }
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        imageUrl,
+        width: 60,
+        height: 60,
+        fit: BoxFit.cover,
+        errorBuilder:
+            (_, __, ___) => Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.image_not_supported),
+            ),
+      ),
     );
   }
 }

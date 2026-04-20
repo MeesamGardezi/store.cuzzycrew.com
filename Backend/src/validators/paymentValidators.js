@@ -1,8 +1,9 @@
 const { z } = require('zod');
 
-const createIntentSchema = z.object({
+const createCheckoutSchema = z.object({
   body: z.object({
     orderId: z.string().min(1),
+    orderToken: z.string().min(8).max(200),
   }),
 });
 
@@ -10,4 +11,4 @@ const orderIdSchema = z.object({
   params: z.object({ orderId: z.string().min(1) }),
 });
 
-module.exports = { createIntentSchema, orderIdSchema };
+module.exports = { createCheckoutSchema, orderIdSchema };

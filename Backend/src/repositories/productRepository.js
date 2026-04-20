@@ -8,7 +8,7 @@ async function getBySlug(slug) {
   const snap = await productsCol().where('slug', '==', slug).where('deletedAt', '==', null).limit(1).get();
   if (snap.empty) return null;
   const doc = snap.docs[0];
-  return { id: doc.id, ...doc.data() };
+  return { ...doc.data(), id: doc.id };
 }
 
 async function getById(id) {
@@ -16,7 +16,7 @@ async function getById(id) {
   if (!doc.exists) return null;
   const data = doc.data();
   if (data.deletedAt) return null;
-  return { id: doc.id, ...data };
+  return { ...data, id: doc.id };
 }
 
 async function list({
@@ -45,7 +45,7 @@ async function list({
 
   const snap = await q.limit(limit).get();
 
-  const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const items = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
   const nextCursor = snap.docs.length ? snap.docs[snap.docs.length - 1].id : null;
 
   return { items, nextCursor };

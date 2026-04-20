@@ -2,6 +2,7 @@ import 'package:cuzzycrewstore/model/productModel.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/productdetailpage/productDetailPage.dart';
+import 'package:cuzzycrewstore/views/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
 
 class ShopProductCard extends StatefulWidget {
@@ -27,7 +28,6 @@ class _ShopProductCardState extends State<ShopProductCard> {
     final isMobile = width < 640;
     final isTablet = width >= 640 && width < 1024;
 
-    final double radius = width < 640 ? 8 : 10;
     final double titleFontSize = isMobile ? 11 : (isTablet ? 12 : 13);
     final double priceFontSize = isMobile ? 12 : (isTablet ? 13 : 14);
     final double metaFontSize = isMobile ? 9 : (isTablet ? 10 : 11);
@@ -47,7 +47,7 @@ class _ShopProductCardState extends State<ShopProductCard> {
       child: Container(
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(radius),
+          borderRadius: BorderRadius.zero,
           border: Border.all(color: colorScheme.outline),
         ),
         child: Column(
@@ -58,24 +58,16 @@ class _ShopProductCardState extends State<ShopProductCard> {
                 onEnter: (_) => setState(() => _isHovered = true),
                 onExit: (_) => setState(() => _isHovered = false),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(radius),
-                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.zero),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      widget.product.primaryImage.startsWith('http')
-                          ? Image.network(
-                            widget.product.primaryImage,
-                            fit: BoxFit.cover,
-                            errorBuilder:
-                                (context, error, stackTrace) =>
-                                    _imageFallback(colorScheme),
-                          )
-                          : Image.asset(
-                            widget.product.primaryImage,
-                            fit: BoxFit.cover,
-                          ),
+                      AdaptiveImage(
+                        source: widget.product.primaryImage,
+                        sources: widget.product.imageCandidates,
+                        fit: BoxFit.cover,
+                        fallback: _imageFallback(colorScheme),
+                      ),
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 180),
                         opacity: _isHovered ? 1 : 0,

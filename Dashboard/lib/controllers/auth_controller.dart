@@ -4,7 +4,6 @@ import '../services/api_service.dart';
 class AuthController extends ChangeNotifier {
   bool _isLoggedIn = false;
   String? _userEmail;
-  String? _accessToken;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -44,13 +43,21 @@ class AuthController extends ChangeNotifier {
       }
 
       final accessToken = data['tokens']?['accessToken'] as String?;
+      final refreshToken = data['tokens']?['refreshToken'] as String?;
+      final role = data['user']?['role']?.toString();
       if (accessToken == null || accessToken.isEmpty) {
         throw Exception('No access token received');
       }
 
-      // Store token and set in API service
-      _accessToken = accessToken;
-      ApiService.setAuthToken(accessToken);
+      if (role != 'ADMIN') {
+        throw Exception('Admin access required');
+      }
+
+      // Store tokens in API service
+      ApiService.setAuthTokens(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      );
 
       _isLoggedIn = true;
       _userEmail = email;
@@ -71,7 +78,6 @@ class AuthController extends ChangeNotifier {
   void logout() {
     _isLoggedIn = false;
     _userEmail = null;
-    _accessToken = null;
     _errorMessage = null;
     ApiService.clearAuthToken();
     notifyListeners();

@@ -6,10 +6,13 @@ import 'package:cuzzycrewstore/navigation/core/navWrapperController.dart';
 import 'package:cuzzycrewstore/model/categoryModel.dart';
 import 'package:cuzzycrewstore/model/productModel.dart';
 import 'package:cuzzycrewstore/views/pages/productdetailpage/productDetailPage.dart';
+import 'package:cuzzycrewstore/views/widgets/adaptive_image.dart';
 import 'package:cuzzycrewstore/views/widgets/CategoryBox.dart';
+import 'package:cuzzycrewstore/views/widgets/store_footer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:carousel_text/carousel_text.dart';
 
@@ -112,6 +115,7 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final isDark = theme.brightness == Brightness.dark;
+    final pagePadding = DesignUtils.pagePadding(width).horizontal / 2;
     final bodyColor = isDark ? AppColors.darkText : AppColors.lightText;
 
     return Scaffold(
@@ -122,10 +126,10 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 16,
+                padding: EdgeInsets.only(
+                  left: pagePadding,
                   top: 12,
-                  right: 16,
+                  right: pagePadding,
                   bottom: 16,
                 ),
                 child: Column(
@@ -139,6 +143,7 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                         fontSize: width * 0.025,
                       ),
                     ),
+                    SizedBox(height: width * 0.012),
                     Text.rich(
                       TextSpan(
                         children: [
@@ -147,7 +152,7 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                             style: textTheme.bodyMedium?.copyWith(
                               color: AppColors.primaryAccent,
                               fontWeight: FontWeight.bold,
-                              fontSize: width * 0.10,
+                              fontSize: width * 0.092,
                               height: 1.0,
                             ),
                           ),
@@ -156,7 +161,7 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                             style: textTheme.bodyMedium?.copyWith(
                               color: bodyColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: width * 0.10,
+                              fontSize: width * 0.092,
                               height: 1.0,
                             ),
                           ),
@@ -178,7 +183,7 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                         'PREMIUM STREETWEAR FOR THE CREW.',
                         style: textTheme.bodyMedium?.copyWith(
                           color: bodyColor,
-                          fontSize: width * 0.035,
+                          fontSize: width * 0.033,
                         ),
                       ),
                     ),
@@ -186,7 +191,7 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: pagePadding),
                 child: Builder(
                   builder: (context) {
                     final spacing = MediaQuery.of(context).size.width * 0.017;
@@ -294,14 +299,13 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                           vertical: height * 0.015,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
+                          borderRadius: BorderRadius.zero,
                         ),
                       ),
                       child: Text(
                         'SHOP THE DROP',
                         style: textTheme.bodyMedium?.copyWith(
-                          color:
-                              isDark ? AppColors.lightText : AppColors.darkText,
+                          color: AppColors.darkText,
                           fontSize: width * 0.03,
                           fontWeight: FontWeight.bold,
                         ),
@@ -321,7 +325,7 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                     rotatingWords: [
                       'FREE SHIPPING ON ALL ORDERS',
                       'NEW ARRIVALS DROPPING WEEKLY',
-                      'JOIN THE CREW FOR EXCLUSIVE DEALS',
+                      'LIMITED DROPS. FAST SELL-OUTS.',
                     ],
                     animationType: AnimationType.typing,
                     fixedTextStyle: textTheme.bodyMedium?.copyWith(
@@ -339,7 +343,7 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
               ),
               SizedBox(height: height * 0.02),
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(pagePadding),
                 child: Column(
                   children: [
                     Align(
@@ -369,42 +373,67 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                         return ValueListenableBuilder<List<CategoryModel>>(
                           valueListenable: homeController.categories,
                           builder: (context, categories, _) {
-                            final featuredItems =
-                                categories.take(4).map((item) {
-                                  return CategoryBoxItem(
-                                    title: item.name,
-                                    thumbnail: item.thumbnail,
-                                    launched: item.launched,
-                                    onTap:
-                                        () =>
-                                            NavWrapperController.openShopWithCategory(
-                                              item.slug,
-                                            ),
-                                  );
-                                }).toList();
+                            return ValueListenableBuilder<List<ProductModel>>(
+                              valueListenable: homeController.products,
+                              builder: (context, products, __) {
+                                String normalize(String value) =>
+                                    value.trim().toLowerCase();
 
-                            if (featuredItems.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
+                                final featuredItems =
+                                    categories.take(4).map((item) {
+                                      final categorySlug = normalize(item.slug);
+                                      final categoryName = normalize(item.name);
+                                      final hasProducts = products.any((
+                                        product,
+                                      ) {
+                                        final productCategory = normalize(
+                                          product.category,
+                                        );
+                                        return productCategory ==
+                                                categorySlug ||
+                                            productCategory == categoryName;
+                                      });
+                                      final canOpen =
+                                          item.launched && hasProducts;
 
-                            return GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: featuredItems.length,
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 10,
-                                    mainAxisSpacing: 10,
-                                    childAspectRatio: 0.8,
-                                  ),
-                              itemBuilder: (context, index) {
-                                final item = featuredItems[index];
-                                return CategoryBox(
-                                  title: item.title,
-                                  thumbnail: item.thumbnail,
-                                  launched: item.launched,
-                                  onTap: item.onTap,
+                                      return CategoryBoxItem(
+                                        title: item.name,
+                                        thumbnail: item.thumbnail,
+                                        launched: canOpen,
+                                        onTap:
+                                            canOpen
+                                                ? () =>
+                                                    NavWrapperController.openShopWithCategory(
+                                                      item.slug,
+                                                    )
+                                                : null,
+                                      );
+                                    }).toList();
+
+                                if (featuredItems.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+
+                                return GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: featuredItems.length,
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 2,
+                                        crossAxisSpacing: 10,
+                                        mainAxisSpacing: 10,
+                                        childAspectRatio: 0.8,
+                                      ),
+                                  itemBuilder: (context, index) {
+                                    final item = featuredItems[index];
+                                    return CategoryBox(
+                                      title: item.title,
+                                      thumbnail: item.thumbnail,
+                                      launched: item.launched,
+                                      onTap: item.onTap,
+                                    );
+                                  },
                                 );
                               },
                             );
@@ -480,34 +509,8 @@ class HomeMobileLayoutState extends State<HomeMobileLayout> {
                   ],
                 ),
               ),
-              SizedBox(height: height * 0.01),
-              Container(
-                width: width,
-                height: height * 0.28,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: const AssetImage('assets/images/Container.png'),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      isDark
-                          ? AppColors.darkBase.withOpacity(0.45)
-                          : AppColors.lightSurface.withOpacity(0.20),
-                      BlendMode.srcATop,
-                    ),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    'JOIN THE CREW',
-                    style: textTheme.headlineMedium?.copyWith(
-                      color: isDark ? AppColors.darkText : AppColors.lightText,
-                      fontSize: width * 0.09,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ),
-              ),
+              SizedBox(height: height * 0.02),
+              const StoreFooter(),
             ],
           ),
         ),
@@ -541,7 +544,7 @@ class _InfoStatBox extends StatelessWidget {
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.primaryAccent.withOpacity(0.1),
+        color: AppColors.primaryAccent.withValues(alpha: 0.1),
         border: Border.all(color: AppColors.primaryAccent, width: 1),
       ),
       child: Column(
@@ -579,9 +582,6 @@ class _VerticalProductCard extends StatelessWidget {
     final textTheme = theme.textTheme;
     final width = MediaQuery.of(context).size.width;
     final isDark = theme.brightness == Brightness.dark;
-    final bool isMobile = width < 640;
-    final bool isTablet = width >= 640 && width < 1024;
-    final double radius = isMobile ? 8 : (isTablet ? 10 : 12);
 
     return GestureDetector(
       onTap: () {
@@ -599,17 +599,25 @@ class _VerticalProductCard extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(radius),
+              borderRadius: BorderRadius.zero,
               border: Border.all(color: theme.colorScheme.outline),
             ),
             child: AspectRatio(
               aspectRatio: 1.2,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(radius),
-                child:
-                    product.primaryImage.startsWith('http')
-                        ? Image.network(product.primaryImage, fit: BoxFit.cover)
-                        : Image.asset(product.primaryImage, fit: BoxFit.cover),
+                borderRadius: BorderRadius.zero,
+                child: AdaptiveImage(
+                  source: product.primaryImage,
+                  fit: BoxFit.cover,
+                  fallback: Container(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

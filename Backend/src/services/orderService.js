@@ -1,9 +1,11 @@
 const { getDb } = require('../config/firebase');
 const { ApiError } = require('../utils/apiError');
 const { newId, nowIso, toNumber } = require('../utils/firestore');
+const crypto = require('crypto');
 
 const orderRepository = require('../repositories/orderRepository');
 const { orderItemsCol, listByOrderId } = require('../repositories/orderItemRepository');
+const { getInitialOrderState, ORDER_STATUSES } = require('../utils/orderState');
 
 function generateOrderNumber() {
   const t = Date.now().toString(36).toUpperCase();
@@ -31,6 +33,7 @@ async function createOrder({ userId, idempotencyKey, items, currency, shippingAd
   const db = getDb();
   const createdAt = nowIso();
   const orderId = newId();
+  const orderToken = crypto.randomBytes(24).toString('hex');
 
   const orderNumber = generateOrderNumber();
 
@@ -59,6 +62,7 @@ async function createOrder({ userId, idempotencyKey, items, currency, shippingAd
     const orderCurrency = String(currency || 'USD').toUpperCase();
 
     const computedItems = [];
+    const stockUpdates = [];
 
     for (const it of items) {
       const productId = String(it.productId || '');
@@ -91,7 +95,7 @@ async function createOrder({ userId, idempotencyKey, items, currency, shippingAd
         throw new ApiError({ status: 409, code: 'OUT_OF_STOCK', message: 'Insufficient stock', details: [{ productId }] });
       }
 
-      tx.set(productRef, { availableUnits: available - qty, updatedAt: createdAt }, { merge: true });
+      stockUpdates.push({ productRef, availableUnits: available - qty });
 
       computedItems.push({
         productId,
@@ -113,22 +117,26 @@ async function createOrder({ userId, idempotencyKey, items, currency, shippingAd
 
     const orderRef = orderRepository.ordersCol().doc(orderId);
 
+    for (const stock of stockUpdates) {
+      tx.set(stock.productRef, { availableUnits: stock.availableUnits, updatedAt: createdAt }, { merge: true });
+    }
+
     if (idempotencyRef) {
       tx.create(idempotencyRef, { orderId, userId: userId || null, idempotencyKey: idemKey, createdAt });
     }
     tx.create(orderNumberRef, { orderId, orderNumber, createdAt });
 
-    tx.create(orderRef, {
+      tx.create(orderRef, {
       userId: userId || null,
       orderNumber,
-      status: 'PENDING_PAYMENT',
+        ...getInitialOrderState(),
+        orderToken,
       currency: orderCurrency,
       subtotal,
       discountTotal,
       total,
       couponCode: null,
       shippingAddress: shippingAddress || null,
-      stripePaymentIntentId: null,
       createdAt,
       updatedAt: createdAt,
       canceledAt: null,
@@ -198,11 +206,11 @@ async function cancelOrder({ userId, orderId }) {
       throw new ApiError({ status: 403, code: 'FORBIDDEN', message: 'Forbidden', details: [] });
     }
 
-    if (order.status !== 'PENDING_PAYMENT') {
+    if (order.status !== ORDER_STATUSES.PENDING_PAYMENT) {
       throw new ApiError({ status: 422, code: 'CANNOT_CANCEL', message: 'Order cannot be canceled', details: [] });
     }
 
-    tx.set(ref, { status: 'CANCELED', canceledAt: now, updatedAt: now }, { merge: true });
+    tx.set(ref, { status: ORDER_STATUSES.CANCELED, canceledAt: now, updatedAt: now }, { merge: true });
   });
 
   return getOrder({ userId, orderId });

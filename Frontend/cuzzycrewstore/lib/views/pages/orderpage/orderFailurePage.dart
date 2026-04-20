@@ -1,5 +1,6 @@
 import 'package:cuzzycrewstore/model/orderModel.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
+import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:flutter/material.dart';
 
 class OrderFailurePage extends StatelessWidget {
@@ -21,6 +22,35 @@ class OrderFailurePage extends StatelessWidget {
     return Scaffold(
       backgroundColor:
           isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      appBar: AppBar(
+        backgroundColor:
+            isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        toolbarHeight: DesignUtils.topBarHeight,
+        titleSpacing: 0,
+        leadingWidth: 56,
+        shape: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            width: 1.5,
+          ),
+        ),
+        leading: IconButton(
+          style: DesignUtils.topBarIconButtonStyle(isDark: isDark),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context, false),
+        ),
+        title: Text(
+          'ORDER STATUS',
+          style: DesignUtils.topBarTitleStyle(
+            isDark: isDark,
+            fontSize: isMobile ? 18 : (isTablet ? 20 : 22),
+            letterSpacing: 1.4,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(sectionPadding),
@@ -30,7 +60,7 @@ class OrderFailurePage extends StatelessWidget {
               padding: EdgeInsets.all(sectionPadding),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.zero,
                 border: Border.all(
                   color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                 ),
@@ -41,7 +71,7 @@ class OrderFailurePage extends StatelessWidget {
                   Icon(
                     Icons.error_rounded,
                     size: isMobile ? 86 : 96,
-                    color: Colors.redAccent,
+                    color: AppColors.semanticDanger,
                   ),
                   const SizedBox(height: 14),
                   Text(
@@ -77,7 +107,7 @@ class OrderFailurePage extends StatelessWidget {
                       foregroundColor: AppColors.darkText,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.zero,
                       ),
                     ),
                     onPressed: () => Navigator.pop(context, true),
@@ -100,7 +130,7 @@ class OrderFailurePage extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.zero,
                       ),
                     ),
                     onPressed: () => Navigator.pop(context, false),

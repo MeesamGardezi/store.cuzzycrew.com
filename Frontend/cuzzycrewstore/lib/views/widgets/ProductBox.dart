@@ -2,6 +2,7 @@ import 'package:cuzzycrewstore/model/productModel.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
 import 'package:cuzzycrewstore/views/pages/productdetailpage/productDetailPage.dart';
+import 'package:cuzzycrewstore/views/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
 
 class ProductBoxGrid extends StatelessWidget {
@@ -50,7 +51,6 @@ class _ProductBoxState extends State<ProductBox> {
     final width = MediaQuery.of(context).size.width;
     final bool isMobile = width < 640;
     final bool isTablet = width >= 640 && width < 1024;
-    final double radius = isMobile ? 8 : (isTablet ? 10 : 12);
     final double nameSize = isMobile ? 12 : (isTablet ? 13 : width * 0.01);
     final double priceSize = isMobile ? 11 : (isTablet ? 12 : width * 0.009);
 
@@ -68,7 +68,7 @@ class _ProductBoxState extends State<ProductBox> {
         child: Container(
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(radius),
+            borderRadius: BorderRadius.zero,
             border: Border.all(color: colorScheme.outline),
           ),
           child: Column(
@@ -79,24 +79,16 @@ class _ProductBoxState extends State<ProductBox> {
                   onEnter: (_) => setState(() => _isHovered = true),
                   onExit: (_) => setState(() => _isHovered = false),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(radius),
-                    ),
+                    borderRadius: BorderRadius.vertical(top: Radius.zero),
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        widget.product.primaryImage.startsWith('http')
-                            ? Image.network(
-                              widget.product.primaryImage,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      _imageFallback(colorScheme),
-                            )
-                            : Image.asset(
-                              widget.product.primaryImage,
-                              fit: BoxFit.cover,
-                            ),
+                        AdaptiveImage(
+                          source: widget.product.primaryImage,
+                          sources: widget.product.imageCandidates,
+                          fit: BoxFit.cover,
+                          fallback: _imageFallback(colorScheme),
+                        ),
                         AnimatedOpacity(
                           duration: const Duration(milliseconds: 200),
                           opacity: _isHovered ? 1 : 0,
@@ -128,7 +120,7 @@ class _ProductBoxState extends State<ProductBox> {
                                   vertical: 14,
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(0),
+                                  borderRadius: BorderRadius.zero,
                                 ),
                               ),
                               child: Text(

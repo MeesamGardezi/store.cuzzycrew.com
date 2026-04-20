@@ -51,10 +51,12 @@ flutter pub get
 flutter run -d chrome
 ```
 
+For local development, the dashboard now points to `http://localhost:4000`.
+
 **Production (Vercel Backend)**
 Update `baseUrl` in `lib/services/api_service.dart`:
 ```dart
-static const String baseUrl = 'https://cuzzycrew-backend.vercel.app';
+static const String baseUrl = 'http://localhost:4000';
 ```
 
 ## 📄 File Details

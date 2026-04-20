@@ -10,28 +10,51 @@ Color fromHex(String hexString) {
 }
 
 class AppColors {
-  static const Color primaryAccent = Color(0xFFE39C3A);
-  static const Color secondaryAccent = Color(0xFFA16E29);
+  static const Color amber950 = Color(0xFF431400);
+  static const Color amber900 = Color(0xFF7C2D00);
+  static const Color amber800 = Color(0xFFC85F00);
+  static const Color amber700 = Color(0xFFEA6C00);
+  static const Color amber600 = Color(0xFFF5841F);
+  static const Color amber500 = Color(0xFFFB9A3C);
+  static const Color amber400 = Color(0xFFFFA94D);
+  static const Color amber300 = Color(0xFFFFCC8A);
+  static const Color amber200 = Color(0xFFFFE4BA);
+  static const Color amber100 = Color(0xFFFFF3E0);
+  static const Color amber50 = Color(0xFFFFFAF4);
 
-  static const Color slate50 = Color(0xFFF1F5F9);
-  static const Color slate400 = Color(0xFF94A3B8);
-  static const Color slate500 = Color(0xFF64748B);
+  static const Color ink950 = Color(0xFF1A0800);
+  static const Color ink700 = Color(0xFF5C3410);
+  static const Color ink500 = Color(0xFF9A6A3A);
+  static const Color paper = Color(0xFFFFF8EE);
+  static const Color background = Color(0xFFFFFBF5);
 
-  static const Color darkBase = Color(0xFF211A11);
+  static const Color semanticSuccess = Color(0xFF16A34A);
+  static const Color semanticWarning = Color(0xFFD97706);
+  static const Color semanticDanger = Color(0xFFDC2626);
 
-  static const Color lightBackground = Color(0xFFEFECEA);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceAlt = Color(0xFFE4E4E4);
-  static const Color lightBorder = Color(0xFFCCCCCC);
-  static const Color lightText = Color(0xFF1A1A1A);
+  static const Color slate50 = Color(0xFFF5EAD8);
+  static const Color slate400 = Color(0xFFD4AE85);
+  static const Color slate500 = Color(0xFF9A6A3A);
 
-  static const Color darkBackground = Color(0xFF211A11);
-  static const Color darkSurface = Color(0xFF141414);
-  static const Color darkSurfaceAlt = Color(0xFF1E1E1E);
-  static const Color darkBorder = Color(0xFF2A2A2A);
-  static const Color darkText = Color(0xFFE8E8E8);
+  static const Color darkBase = ink950;
 
-  static const Color mutedText = Color(0xFF666666);
+  static const Color lightBackground = background;
+  static const Color lightSurface = paper;
+  static const Color lightSurfaceAlt = amber100;
+  static const Color lightBorder = ink950;
+  static const Color lightText = ink950;
+
+  static const Color darkBackground = ink950;
+  static const Color darkSurface = Color(0xFF2D1400);
+  static const Color darkSurfaceAlt = Color(0xFF3D2200);
+  static const Color darkBorder = amber800;
+  static const Color darkText = amber100;
+
+  static const Color mutedText = ink700;
+
+  // Keep legacy semantic names so existing widgets compile unchanged.
+  static const Color primaryAccent = amber600;
+  static const Color secondaryAccent = amber800;
 
   static final Color primaryAccent05 = primaryAccent.withValues(alpha: 0.05);
   static final Color primaryAccent10 = primaryAccent.withValues(alpha: 0.10);
@@ -54,40 +77,44 @@ class AppTheme {
             : AppColors.mutedText;
 
     return TextTheme(
-      displayLarge: GoogleFonts.bebasNeue(
-        color: baseColor,
-        letterSpacing: 1.0,
-
-      ),
+      displayLarge: GoogleFonts.bebasNeue(color: baseColor, letterSpacing: 2.2),
       headlineMedium: GoogleFonts.bebasNeue(
         color: baseColor,
-        letterSpacing: 0.6,
- 
+        letterSpacing: 1.4,
       ),
       headlineSmall: GoogleFonts.bebasNeue(
         color: baseColor,
-        letterSpacing: 0.5,
-       
+        letterSpacing: 1.2,
       ),
-      titleLarge: GoogleFonts.bebasNeue(
+      titleLarge: GoogleFonts.bebasNeue(color: baseColor, letterSpacing: 1.0),
+      titleMedium: GoogleFonts.spaceMono(
         color: baseColor,
-        letterSpacing: 0.4,
-       
-      ),
-      titleMedium: GoogleFonts.syne(
-        color: baseColor,
-        
         fontWeight: FontWeight.w600,
       ),
-      bodyMedium: GoogleFonts.syne(color: baseColor,),
-      bodySmall: GoogleFonts.syne(color: variantColor, ),
-      labelMedium: GoogleFonts.dmMono(color: variantColor, ),
+      bodyMedium: GoogleFonts.spaceMono(color: baseColor),
+      bodySmall: GoogleFonts.spaceMono(color: variantColor),
+      labelMedium: GoogleFonts.spaceMono(color: variantColor),
     );
   }
 
+  static final _lightTextButtonStyle = TextButton.styleFrom(
+    foregroundColor: AppColors.lightText,
+    textStyle: GoogleFonts.spaceMono(fontWeight: FontWeight.w700),
+    side: const BorderSide(color: AppColors.lightBorder, width: 1),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  );
+
+  static final _darkTextButtonStyle = TextButton.styleFrom(
+    foregroundColor: AppColors.darkText,
+    textStyle: GoogleFonts.spaceMono(fontWeight: FontWeight.w700),
+    side: const BorderSide(color: AppColors.darkBorder, width: 1),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  );
+
   static ThemeData light() {
     final colorScheme = const ColorScheme.light(
-      
       primary: AppColors.primaryAccent,
       secondary: AppColors.secondaryAccent,
       surface: AppColors.lightSurface,
@@ -102,16 +129,79 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: false,
-      fontFamily: GoogleFonts.syne().fontFamily,
+      fontFamily: GoogleFonts.spaceMono().fontFamily,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.lightBackground,
       colorScheme: colorScheme,
       dividerColor: AppColors.lightBorder,
       cardColor: AppColors.lightSurface,
+      dialogTheme: const DialogTheme(
+        backgroundColor: AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.lightSurface,
         foregroundColor: AppColors.lightText,
         elevation: 0,
+      ),
+      cardTheme: const CardThemeData(
+        color: AppColors.lightSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+          side: BorderSide(color: AppColors.lightBorder, width: 1),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          backgroundColor: AppColors.lightSurface,
+          foregroundColor: AppColors.lightText,
+          side: const BorderSide(color: AppColors.lightBorder, width: 1),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(style: _lightTextButtonStyle),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.lightText,
+          side: const BorderSide(color: AppColors.lightBorder, width: 1),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          textStyle: GoogleFonts.spaceMono(fontWeight: FontWeight.w700),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryAccent,
+          foregroundColor: AppColors.lightText,
+          elevation: 0,
+          side: const BorderSide(color: AppColors.lightBorder, width: 1),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          textStyle: GoogleFonts.spaceMono(fontWeight: FontWeight.w700),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.lightSurface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide(color: AppColors.lightBorder, width: 1),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide(color: AppColors.lightBorder, width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide(color: AppColors.primaryAccent, width: 2),
+        ),
+      ),
+      tabBarTheme: const TabBarThemeData(
+        labelColor: AppColors.lightText,
+        unselectedLabelColor: AppColors.ink700,
+        indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(color: AppColors.primaryAccent, width: 3),
+        ),
       ),
       textTheme: textTheme,
     );
@@ -133,16 +223,79 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: false,
-      fontFamily: GoogleFonts.syne().fontFamily,
+      fontFamily: GoogleFonts.spaceMono().fontFamily,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkBackground,
       colorScheme: colorScheme,
       dividerColor: AppColors.darkBorder,
       cardColor: AppColors.darkSurface,
+      dialogTheme: const DialogTheme(
+        backgroundColor: AppColors.darkSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.darkSurface,
         foregroundColor: AppColors.darkText,
         elevation: 0,
+      ),
+      cardTheme: const CardThemeData(
+        color: AppColors.darkSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+          side: BorderSide(color: AppColors.darkBorder, width: 1),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          backgroundColor: AppColors.darkSurface,
+          foregroundColor: AppColors.darkText,
+          side: const BorderSide(color: AppColors.darkBorder, width: 1),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(style: _darkTextButtonStyle),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.darkText,
+          side: const BorderSide(color: AppColors.darkBorder, width: 1),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          textStyle: GoogleFonts.spaceMono(fontWeight: FontWeight.w700),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryAccent,
+          foregroundColor: AppColors.darkText,
+          elevation: 0,
+          side: const BorderSide(color: AppColors.darkBorder, width: 1),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          textStyle: GoogleFonts.spaceMono(fontWeight: FontWeight.w700),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.darkSurfaceAlt,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide(color: AppColors.darkBorder, width: 1),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide(color: AppColors.darkBorder, width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide(color: AppColors.primaryAccent, width: 2),
+        ),
+      ),
+      tabBarTheme: const TabBarThemeData(
+        labelColor: AppColors.darkText,
+        unselectedLabelColor: AppColors.amber300,
+        indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(color: AppColors.primaryAccent, width: 3),
+        ),
       ),
       textTheme: textTheme,
     );
