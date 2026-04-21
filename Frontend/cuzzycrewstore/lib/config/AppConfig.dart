@@ -3,5 +3,5 @@
 /// NEVER deploy to production with this set to true.
 const bool kUseDummyPaddle = bool.fromEnvironment(
   'USE_DUMMY_PADDLE',
-  defaultValue: false,
+  defaultValue: true,
 );

@@ -51,7 +51,8 @@ const listOrders = asyncHandler(async (req, res) => {
   const cursor = req.query.cursor ? String(req.query.cursor) : null;
   const processed =
     req.query.processed === 'true' ? true : req.query.processed === 'false' ? false : null;
-  const result = await adminService.listOrders({ limit, cursor, processed });
+  const paidOnly = req.query.paidOnly === 'false' ? false : true;
+  const result = await adminService.listOrders({ limit, cursor, processed, paidOnly });
   return sendSuccess(res, { data: result, message: '' });
 });
 

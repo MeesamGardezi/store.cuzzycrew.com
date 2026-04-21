@@ -894,6 +894,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
       _submittedOnce = true;
     });
 
+    if (_lineItems.isEmpty) {
+      _showErrorSnackBar('Your cart is empty. Add items before checkout.');
+      return;
+    }
+
     final isValid = _shippingFormKey.currentState?.validate() ?? false;
     if (!isValid) {
       _showErrorSnackBar('Please fix the highlighted shipping fields.');

@@ -3,8 +3,8 @@ import 'package:cuzzycrewstore/navigation/core/navWrapperController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
 import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:cuzzycrewstore/utils/helper.dart';
-import 'package:cuzzycrewstore/views/pages/track_order_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class OrderSuccessPage extends StatelessWidget {
   const OrderSuccessPage({super.key, required this.order});
@@ -117,36 +117,6 @@ class OrderSuccessPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(
-                        color:
-                            isDark
-                                ? AppColors.darkBorder
-                                : AppColors.lightBorder,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero,
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const TrackOrderPage(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'VIEW ORDER DETAILS',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: bodyColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -188,7 +158,7 @@ class _OrderSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          _SummaryRow(label: 'Order ID', value: order.id),
+          _OrderIdRow(orderId: order.id),
           const SizedBox(height: 8),
           _SummaryRow(
             label: 'Total Paid',
@@ -236,6 +206,58 @@ class _SummaryRow extends StatelessWidget {
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderIdRow extends StatelessWidget {
+  const _OrderIdRow({required this.orderId});
+
+  final String orderId;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bodyColor = isDark ? AppColors.darkText : AppColors.lightText;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Order ID',
+                style: theme.textTheme.bodySmall?.copyWith(color: bodyColor),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Copy order ID',
+              visualDensity: VisualDensity.compact,
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: orderId));
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Order ID copied to clipboard')),
+                );
+              },
+              icon: Icon(
+                Icons.copy_rounded,
+                size: 18,
+                color: isDark ? AppColors.amber300 : AppColors.ink700,
+              ),
+            ),
+          ],
+        ),
+        SelectableText(
+          orderId,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: bodyColor,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],

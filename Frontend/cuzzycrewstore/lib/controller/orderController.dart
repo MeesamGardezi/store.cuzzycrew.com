@@ -204,12 +204,17 @@ class OrderController extends ChangeNotifier {
           (item) => {
             'productId': item['productId']?.toString() ?? '',
             'quantity': (item['quantity'] as num?)?.toInt() ?? 1,
-            'selectedSize': item['selectedSize']?.toString() ?? '',
+            'selectedSize': _normalizeSelectedSize(item['selectedSize']),
             'selectedColor': item['selectedColor']?.toString() ?? '',
           },
         )
         .where((item) => item['productId'].toString().isNotEmpty)
         .toList();
+  }
+
+  String _normalizeSelectedSize(dynamic rawSize) {
+    final candidate = rawSize?.toString().trim() ?? '';
+    return candidate.isEmpty ? 'ONE_SIZE' : candidate;
   }
 
   Map<String, dynamic> _extractData(Map<String, dynamic> response) {

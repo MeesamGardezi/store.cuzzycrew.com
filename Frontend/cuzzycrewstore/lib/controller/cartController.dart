@@ -36,11 +36,50 @@ class CartController extends ChangeNotifier {
         ..clear()
         ..addAll(
           decoded.whereType<Map>().map(
-            (item) => CartItem.fromJson(Map<String, dynamic>.from(item)),
+            (item) => _sanitizeCartItem(
+              CartItem.fromJson(Map<String, dynamic>.from(item)),
+            ),
           ),
         );
+      _persistCart();
       notifyListeners();
     } catch (_) {}
+  }
+
+  CartItem _sanitizeCartItem(CartItem item) {
+    final normalizedSize = _resolveSelectedSize(
+      item.product,
+      item.selectedSize,
+    );
+    if (normalizedSize == item.selectedSize) {
+      return item;
+    }
+
+    return CartItem(
+      id: item.id,
+      product: item.product,
+      selectedColor: item.selectedColor,
+      selectedSize: normalizedSize,
+      quantity: item.quantity,
+      priceAtAddTime: item.priceAtAddTime,
+      addedAt: item.addedAt,
+    );
+  }
+
+  String _resolveSelectedSize(ProductModel product, String selectedSize) {
+    final candidate = selectedSize.trim();
+    if (candidate.isNotEmpty) {
+      return candidate;
+    }
+
+    for (final size in product.sizes) {
+      final normalized = size.trim();
+      if (normalized.isNotEmpty) {
+        return normalized;
+      }
+    }
+
+    return 'ONE_SIZE';
   }
 
   Map<String, dynamic> _serializeCartItem(CartItem item) {
@@ -98,12 +137,14 @@ class CartController extends ChangeNotifier {
     required String selectedSize,
     required int quantity,
   }) {
+    final normalizedSize = _resolveSelectedSize(product, selectedSize);
+
     // Check if item with same product and specs already exists
     final existingIndex = _items.indexWhere(
       (item) =>
           item.product.id == product.id &&
           item.selectedColor == selectedColorHex &&
-          item.selectedSize == selectedSize,
+          item.selectedSize == normalizedSize,
     );
 
     if (existingIndex >= 0) {
@@ -118,7 +159,7 @@ class CartController extends ChangeNotifier {
         id: const Uuid().v4(),
         product: product,
         selectedColor: selectedColorHex,
-        selectedSize: selectedSize,
+        selectedSize: normalizedSize,
         quantity: quantity,
         priceAtAddTime: product.price,
         addedAt: DateTime.now(),
@@ -184,7 +225,10 @@ class CartController extends ChangeNotifier {
                   'currency': item.product.currency,
                   'quantity': item.quantity,
                   'selectedColor': item.selectedColor,
-                  'selectedSize': item.selectedSize,
+                  'selectedSize': _resolveSelectedSize(
+                    item.product,
+                    item.selectedSize,
+                  ),
                   'price': item.priceAtAddTime,
                   'pricePerItem': item.priceAtAddTime,
                   'totalPrice': item.totalPrice,

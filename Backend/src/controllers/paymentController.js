@@ -18,7 +18,7 @@ const webhook = asyncHandler(async (req, res) => {
 
 const status = asyncHandler(async (req, res) => {
   const { orderId } = req.validated.params;
-  const orderToken = req.header('x-order-token') || req.query.token || null;
+  const orderToken = req.header('x-order-token') || null;
   if (!orderToken || String(orderToken).trim() === '') {
     throw new ApiError({ status: 403, code: 'FORBIDDEN', message: 'Order token required', details: [] });
   }

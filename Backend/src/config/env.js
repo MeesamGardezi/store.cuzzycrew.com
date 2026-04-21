@@ -39,6 +39,15 @@ function getConfig() {
 
   const env = parsed.data;
 
+  if (env.NODE_ENV === 'production' && String(env.CORS_ORIGIN || '').trim() === '*') {
+    const err = new Error('Invalid production configuration: CORS_ORIGIN cannot be "*" in production');
+    err.details = {
+      field: 'CORS_ORIGIN',
+      reason: 'Wildcard origin is not allowed in production',
+    };
+    throw err;
+  }
+
   cachedConfig = {
     env: env.NODE_ENV,
     port: env.PORT,

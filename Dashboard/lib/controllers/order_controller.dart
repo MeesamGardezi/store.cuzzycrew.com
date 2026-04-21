@@ -116,6 +116,22 @@ class OrderController extends ChangeNotifier {
 
   Future<bool> toggleProcessed(String orderId) async {
     try {
+      Order? existing;
+      for (final order in _unprocessedOrders) {
+        if (order.id == orderId) {
+          existing = order;
+          break;
+        }
+      }
+      if (existing == null) {
+        for (final order in _processedOrders) {
+          if (order.id == orderId) {
+            existing = order;
+            break;
+          }
+        }
+      }
+
       final response = await ApiService.patch(
         '/api/admin/orders/$orderId/toggleprocessedkey',
         {},
@@ -123,7 +139,10 @@ class OrderController extends ChangeNotifier {
       final data = response['data'] as Map<String, dynamic>?;
       if (data == null) return false;
 
-      final updated = Order.fromJson(data);
+      final updated = _mergeOrderForToggle(
+        updated: Order.fromJson(data),
+        existing: existing,
+      );
       _unprocessedOrders.removeWhere((order) => order.id == orderId);
       _processedOrders.removeWhere((order) => order.id == orderId);
       if (updated.processed) {
@@ -146,5 +165,47 @@ class OrderController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  Order _mergeOrderForToggle({
+    required Order updated,
+    required Order? existing,
+  }) {
+    if (existing == null) {
+      return updated;
+    }
+
+    return Order(
+      id: updated.id,
+      orderNumber:
+          updated.orderNumber.isNotEmpty
+              ? updated.orderNumber
+              : existing.orderNumber,
+      status: updated.status,
+      userId: updated.userId ?? existing.userId,
+      orderToken: updated.orderToken ?? existing.orderToken,
+      processed: updated.processed,
+      processedAt: updated.processedAt,
+      processedBy: updated.processedBy,
+      paymentProvider:
+          (updated.paymentProvider ?? '').isNotEmpty
+              ? updated.paymentProvider
+              : existing.paymentProvider,
+      paymentStatus:
+          (updated.paymentStatus ?? '').isNotEmpty
+              ? updated.paymentStatus
+              : existing.paymentStatus,
+      shippingAddress: updated.shippingAddress ?? existing.shippingAddress,
+      items: updated.items.isNotEmpty ? updated.items : existing.items,
+      subtotal: updated.subtotal > 0 ? updated.subtotal : existing.subtotal,
+      discountTotal:
+          updated.discountTotal > 0
+              ? updated.discountTotal
+              : existing.discountTotal,
+      total: updated.total > 0 ? updated.total : existing.total,
+      currency:
+          updated.currency.isNotEmpty ? updated.currency : existing.currency,
+      createdAt: updated.createdAt,
+    );
   }
 }

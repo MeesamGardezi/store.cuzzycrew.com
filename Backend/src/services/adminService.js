@@ -426,8 +426,13 @@ async function updateVariantStock({ actorUserId, variantId, stock, correlationId
   return after;
 }
 
-async function listOrders({ limit, cursor, processed }) {
-  return adminOrderRepository.list({ limit, startAfter: cursor, processed });
+async function listOrders({ limit, cursor, processed, paidOnly = true }) {
+  return adminOrderRepository.list({
+    limit,
+    startAfter: cursor,
+    processed,
+    paidOnly,
+  });
 }
 
 async function updateOrderStatus({ actorUserId, orderId, status, correlationId }) {

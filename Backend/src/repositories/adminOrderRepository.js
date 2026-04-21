@@ -8,8 +8,19 @@ function normalizeHex(value) {
   return raw.startsWith('#') ? raw : raw ? `#${raw}` : '';
 }
 
-async function enrichOrderItems(orderId) {
-  const items = await listByOrderId(orderId);
+function normalizeLegacyItems(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item) => item && typeof item === 'object')
+    .map((item) => ({ ...item }));
+}
+
+async function enrichOrderItems(orderId, orderData = {}) {
+  const collectionItems = await listByOrderId(orderId);
+  const items =
+    collectionItems.length > 0
+      ? collectionItems
+      : normalizeLegacyItems(orderData.items);
   const productCache = new Map();
 
   return Promise.all(
@@ -57,10 +68,19 @@ function ordersCol() {
   return getDb().collection('orders');
 }
 
-async function list({ limit = 50, startAfter = null, processed = null } = {}) {
+async function list({
+  limit = 50,
+  startAfter = null,
+  processed = null,
+  paidOnly = true,
+} = {}) {
   // Primary query path (best performance when Firestore composite indexes exist).
   try {
     let q = ordersCol();
+
+    if (paidOnly) {
+      q = q.where('status', '==', 'PAID');
+    }
 
     if (typeof processed === 'boolean') {
       q = q.where('processed', '==', processed);
@@ -75,17 +95,20 @@ async function list({ limit = 50, startAfter = null, processed = null } = {}) {
 
     const snap = await q.limit(limit).get();
     const items = await Promise.all(
-      snap.docs.map(async (d) => ({
-        id: d.id,
-        ...d.data(),
-        items: await enrichOrderItems(d.id),
-      }))
+      snap.docs.map(async (d) => {
+        const orderData = d.data() || {};
+        return {
+          id: d.id,
+          ...orderData,
+          items: await enrichOrderItems(d.id, orderData),
+        };
+      })
     );
     const nextCursor = snap.docs.length ? snap.docs[snap.docs.length - 1].id : null;
     return { items, nextCursor };
   } catch (error) {
     // Fallback for environments where composite index is not provisioned yet.
-    // Keep endpoint working by filtering `processed` in-memory.
+    // Keep endpoint working by filtering `processed` and `paidOnly` in-memory.
     const message = String(error?.message || '');
     const isIndexIssue =
       message.includes('FAILED_PRECONDITION') ||
@@ -105,12 +128,19 @@ async function list({ limit = 50, startAfter = null, processed = null } = {}) {
 
     const snap = await q.limit(Math.max(limit * 3, limit)).get();
     let items = await Promise.all(
-      snap.docs.map(async (d) => ({
-        id: d.id,
-        ...d.data(),
-        items: await enrichOrderItems(d.id),
-      }))
+      snap.docs.map(async (d) => {
+        const orderData = d.data() || {};
+        return {
+          id: d.id,
+          ...orderData,
+          items: await enrichOrderItems(d.id, orderData),
+        };
+      })
     );
+
+    if (paidOnly) {
+      items = items.filter((item) => String(item.status || '').toUpperCase() === 'PAID');
+    }
 
     if (typeof processed === 'boolean') {
       items = items.filter((item) => Boolean(item.processed) === processed);
