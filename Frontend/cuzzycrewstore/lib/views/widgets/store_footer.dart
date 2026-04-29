@@ -2,6 +2,7 @@ import 'package:cuzzycrewstore/navigation/core/navWrapperController.dart';
 import 'package:cuzzycrewstore/utils/colorUtils.dart';
 import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class StoreFooter extends StatelessWidget {
@@ -12,11 +13,17 @@ class StoreFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     final isMobile = width < 640;
     final horizontalPadding = width < 900 ? 24.0 : 60.0;
     final topPadding = isMobile ? 24.0 : (width < 900 ? 44.0 : 52.0);
     final bottomPadding = isMobile ? 18.0 : (width < 900 ? 28.0 : 36.0);
-
+    final logoWidth =
+        isMobile ? width * 0.32 : (width < 900 ? width * 0.195 : width * 0.116);
+    final logoHeight =
+        isMobile
+            ? height * 0.043
+            : (width < 900 ? height * 0.052 : height * 0.036);
     return Container(
       width: double.infinity,
       margin: EdgeInsets.only(top: isMobile ? 12 : 28),
@@ -46,20 +53,12 @@ class StoreFooter extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          RichText(
-                            text: TextSpan(
-                              style: DesignUtils.topBarLogoStyle(
-                                isDark: true,
-                                fontSize: isMobile ? 24 : 30,
-                              ).copyWith(letterSpacing: 4),
-                              children: const [
-                                TextSpan(text: 'Cuzzy'),
-                                TextSpan(
-                                  text: 'Crew',
-                                  style: TextStyle(color: AppColors.amber600),
-                                ),
-                              ],
-                            ),
+                          SvgPicture.asset(
+                            'assets/icons/Cuzzy_Crew_Logo_bumblebee_DARK.svg',
+                            width: logoWidth,
+                            height: logoHeight,
+                            fit: BoxFit.contain,
+                            semanticsLabel: 'CuzzyCrew Logo',
                           ),
                           if (!isMobile) ...[
                             const SizedBox(height: 6),

@@ -4,8 +4,9 @@ import 'package:cuzzycrewstore/utils/colorUtils.dart';
 import 'package:cuzzycrewstore/utils/design_utils.dart';
 import 'package:cuzzycrewstore/views/pages/cartpage/cartPage.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 enum NavbarDeviceType { desktop, tablet, mobile }
 
@@ -58,16 +59,16 @@ class _NavMetrics {
       navHeight: DesignUtils.topBarHeight,
       logoWidth:
           isDesktop
-              ? width * 0.116
+              ? width * 0.114
               : deviceType == NavbarDeviceType.tablet
-              ? width * 0.195
-              : width * 0.32,
+              ? width * 0.18
+              : width * 0.27,
       logoHeight:
           isDesktop
-              ? height * 0.036
+              ? height * 0.033
               : deviceType == NavbarDeviceType.tablet
-              ? height * 0.052
-              : height * 0.043,
+              ? height * 0.045
+              : height * 0.032,
       navItemHorizontalPadding: width * 0.007,
       navItemFontSize:
           ((isDesktop ? width * 0.0095 : width * 0.014).clamp(
@@ -212,16 +213,15 @@ class _LogoWordmark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fontSize = (metrics.logoHeight * 0.92).clamp(28.0, 38.0).toDouble();
 
-    return RichText(
-      text: TextSpan(
-        style: DesignUtils.topBarLogoStyle(isDark: isDark, fontSize: fontSize),
-        children: const [
-          TextSpan(text: 'Cuzzy'),
-          TextSpan(text: 'Crew', style: TextStyle(color: AppColors.amber600)),
-        ],
-      ),
+    return SvgPicture.asset(
+      isDark 
+          ? 'assets/icons/Cuzzy_Crew_Logo_bumblebee_DARK.svg'
+          : 'assets/icons/Cuzzy_Crew_Logo_bumblebee.svg',
+      width: metrics.logoWidth,
+      height: metrics.logoHeight,
+      fit: BoxFit.contain,
+      semanticsLabel: 'CuzzyCrew Logo',
     );
   }
 }
